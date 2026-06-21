@@ -314,3 +314,12 @@ AI Response Summary:
 - Created M4-tenant-api/status.md
 ----------
 
+[2026-06-21 16:00:32 (GMT+7)] Session started: adfe3a3f-f363-4834-9453-51a37b1fdc37
+AI Response Summary:
+- Implemented all M5 engine pure functions: resolveDocuments, resolveApprovalTiers, resolveNotifications, calculateSlaDeadline, resolveCustomFields, validateCustomFieldValues (re-export)
+- Implemented processClaim orchestrator (T007) with double-cast Prisma Json → TenantConfig
+- Implemented POST /api/tenants/:id/process-claim endpoint (T008) with ClaimDataSchema validation
+- Wrote 32 engine unit tests (T009) covering all functions, boundary cases, and 3-tenant invariant
+- Fixed TS error: resolveNotifications return type uses NotificationEvent not string; all 39 tests pass, tsc --noEmit clean
+----------
+
