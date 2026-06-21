@@ -1,8 +1,7 @@
-'use client'
-
 import { useEffect, useState } from 'react'
-import { Table, Button, Popconfirm, Badge, Typography, Flex, message } from 'antd'
+import { Table, Button, Popconfirm, Badge, Typography, Flex, message, Tooltip } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
+import { ReloadOutlined } from '@ant-design/icons'
 import { tenantsApi, type VersionRow } from '@/lib/api/tenants'
 import { isSuccess } from '@/lib/api/client'
 import dayjs from 'dayjs'
@@ -20,11 +19,6 @@ export function VersionHistory({ tenantId, onRollback }: VersionHistoryProps) {
   const [loading, setLoading] = useState(false)
   const [rollingBack, setRollingBack] = useState<string | null>(null)
 
-  useEffect(() => {
-    loadVersions(page)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page])
-
   const loadVersions = async (p: number) => {
     setLoading(true)
     const res = await tenantsApi.listVersions(tenantId, p, 10)
@@ -34,6 +28,12 @@ export function VersionHistory({ tenantId, onRollback }: VersionHistoryProps) {
     }
     setLoading(false)
   }
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadVersions(page)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page])
 
   const handleRollback = async (versionId: string) => {
     setRollingBack(versionId)
@@ -74,11 +74,7 @@ export function VersionHistory({ tenantId, onRollback }: VersionHistoryProps) {
             onConfirm={() => handleRollback(record.id)}
             okText="Rollback"
           >
-            <Button
-              size="small"
-              loading={rollingBack === record.id}
-              disabled={!!rollingBack}
-            >
+            <Button loading={rollingBack === record.id} disabled={!!rollingBack}>
               Rollback
             </Button>
           </Popconfirm>
@@ -89,10 +85,16 @@ export function VersionHistory({ tenantId, onRollback }: VersionHistoryProps) {
   return (
     <Flex vertical gap={8}>
       {contextHolder}
-      <Typography.Title level={5} style={{ margin: 0 }}>Version History</Typography.Title>
+      <Flex justify="space-between" align="center">
+        <Typography.Title level={5} style={{ margin: 0 }}>
+          Version History
+        </Typography.Title>
+        <Tooltip title="Refresh">
+          <Button icon={<ReloadOutlined />} onClick={() => loadVersions(page)} loading={loading} />
+        </Tooltip>
+      </Flex>
       <Table
         rowKey="id"
-        size="small"
         columns={columns}
         dataSource={versions}
         loading={loading}

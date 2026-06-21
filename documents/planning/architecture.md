@@ -8,7 +8,7 @@ All decisions below are confirmed. Do not deviate without explicit approval.
 
 | Layer | Stack |
 |-------|-------|
-| Frontend | Next.js 16 + TypeScript + Ant Design 5 + Tailwind CSS + Zod |
+| Frontend | React 19 + Vite 8 + React Router v7 + TypeScript + Ant Design 6 + Tailwind v4 + Zod |
 | Backend | Node.js + Express + TypeScript + Prisma + PostgreSQL |
 | Date/time | dayjs (all date arithmetic, SLA deadlines, timezone handling) |
 | Deploy | BE + DB → Railway, FE → Vercel |

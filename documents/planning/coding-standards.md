@@ -132,36 +132,35 @@ Always import dayjs from `@/config/dayjs`, never directly from `dayjs`.
 
 ---
 
-## Frontend (Next.js 16 + TypeScript + Ant Design 6 + Tailwind v4)
+## Frontend (React 19 + Vite 8 + React Router v7 + TypeScript + Ant Design 6 + Tailwind v4)
 
 ### Folder structure
 
 ```
 fe/
-  app/
-    (auth)/
-      login/page.tsx
-    (admin)/
-      layout.tsx          admin shell (sidebar + header)
-      tenants/
-        page.tsx          tenant list
-        [id]/page.tsx     tenant detail / edit
-        new/page.tsx      create tenant
-      diff/page.tsx
-    layout.tsx            root layout with providers
-    globals.css
+  src/
+    main.tsx              React entry point
+    App.tsx               BrowserRouter + Routes tree
+    index.css             @import "tailwindcss" + global resets
+  pages/
+    LoginPage.tsx
+    tenants/
+      TenantsPage.tsx     tenant list
+      TenantDetailPage.tsx  tenant detail / edit (useParams for :id)
+      NewTenantPage.tsx   create tenant
+    DiffPage.tsx
   components/
     providers/
-      AntdProvider.tsx    ConfigProvider + theme context
+      AntdProvider.tsx    ConfigProvider + App + theme context
     layout/
-      AdminShell.tsx      sidebar + header shell
+      AdminShell.tsx      sidebar + header shell, uses <Outlet />
     tenants/              tenant-specific components
     claims/               claim form + result display
     diff/                 diff viewer
     ui/                   generic reusable components
   lib/
     api/
-      client.ts           fetch wrapper with isSuccess util
+      client.ts           fetch wrapper, reads import.meta.env.VITE_API_URL
       tenants.ts
       auth.ts
       claims.ts
@@ -170,7 +169,24 @@ fe/
     utils.ts
   hooks/
     useTenantTheme.ts     reads active tenant branding, updates theme
+  index.html              Vite HTML entry
+  vite.config.ts          Vite + @tailwindcss/vite + @ alias
+  vite-env.d.ts           /// <reference types="vite/client" />
+  vercel.json             SPA rewrite: /* → /index.html
 ```
+
+### Routing (React Router v7)
+
+| Next.js (removed) | React Router v7 |
+|---|---|
+| `import { useRouter } from 'next/navigation'` | `import { useNavigate } from 'react-router-dom'` |
+| `router.push('/path')` | `navigate('/path')` |
+| `router.replace('/path')` | `navigate('/path', { replace: true })` |
+| `usePathname()` | `useLocation().pathname` |
+| `use(params)` / `params: Promise<{id}>` | `useParams<{ id: string }>()` |
+| Route group `(admin)/layout.tsx` wrapping children | `<Route element={<AdminShell />}>` with `<Outlet />` |
+
+Route tree lives in `src/App.tsx`. `AdminShell` renders `<Outlet />` — no `children` prop.
 
 ### Component rules
 
@@ -249,4 +265,4 @@ See `fe/lib/theme.ts` and `fe/components/providers/AntdProvider.tsx`.
 - No inline styles — Tailwind classes or Ant Design props only
 - No `console.log` in committed code — use structured logging on BE
 - All async functions `try/catch` or let errorHandler middleware catch thrown errors
-- All environment variables accessed via `process.env` only inside `config/env.ts` on BE; `NEXT_PUBLIC_*` via `lib/config.ts` on FE
+- All environment variables accessed via `process.env` only inside `config/env.ts` on BE; `import.meta.env.VITE_*` via `lib/api/client.ts` on FE

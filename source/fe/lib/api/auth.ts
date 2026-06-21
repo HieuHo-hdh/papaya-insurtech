@@ -4,8 +4,7 @@ export const authApi = {
   login: (email: string, password: string) =>
     apiClient.post<{ token: string }>('/auth/login', { email, password }),
 
-  logout: () =>
-    apiClient.post<null>('/auth/logout', {}),
+  logout: () => apiClient.post<null>('/auth/logout', {}),
 }
 
 export function saveToken(token: string) {

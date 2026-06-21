@@ -1,6 +1,6 @@
 import type { ApiResponse } from '@/shared/types'
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
 
 export const isSuccess = (code: number) => code >= 200 && code < 300
 export const isUnauthorized = (code: number) => code === 401
@@ -27,7 +27,9 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<ApiResp
 
 export const apiClient = {
   get: <T>(path: string) => request<T>(path),
-  post: <T>(path: string, body: unknown) => request<T>(path, { method: 'POST', body: JSON.stringify(body) }),
-  put: <T>(path: string, body: unknown) => request<T>(path, { method: 'PUT', body: JSON.stringify(body) }),
+  post: <T>(path: string, body: unknown) =>
+    request<T>(path, { method: 'POST', body: JSON.stringify(body) }),
+  put: <T>(path: string, body: unknown) =>
+    request<T>(path, { method: 'PUT', body: JSON.stringify(body) }),
   delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
 }

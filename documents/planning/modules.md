@@ -1,6 +1,6 @@
 # Module Breakdown — Multi-Tenant Insurance Configuration Platform
 
-Tech stack: Next.js 16 + TypeScript + Ant Design 6 + Tailwind v4 + Zod 4 (FE) | Node.js + Express + TypeScript + Prisma + PostgreSQL + dayjs (BE)
+Tech stack: React 19 + Vite 8 + React Router v7 + TypeScript + Ant Design 6 + Tailwind v4 + Zod 4 (FE) | Node.js + Express + TypeScript + Prisma + PostgreSQL + dayjs (BE)
 
 ---
 
@@ -9,7 +9,7 @@ Tech stack: Next.js 16 + TypeScript + Ant Design 6 + Tailwind v4 + Zod 4 (FE) | 
 
 | # | Story |
 |---|-------|
-| S1 | Init Next.js 16 App Router + TypeScript + Ant Design 6 + Tailwind v4  |
+| S1 | Init React 19 + Vite 8 + React Router v7 + TypeScript + Ant Design 6 + Tailwind v4  |
 | S2 | Init Node.js + Express + TypeScript + Prisma BE — scaffold folder structure per coding-standards.md  |
 | S3 | Docker Compose: PostgreSQL + BE service  |
 | S4 | Define shared TypeScript types + Zod 4 schemas in `source/shared/`, copy to `be/src/shared/` and `fe/shared/`  |
