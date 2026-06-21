@@ -337,3 +337,19 @@ AI Response Summary:
 - Marked T001 done, created M6 status.md
 ----------
 
+AI Response Summary:
+- Generated 9 tasks for M6 · admin-ui-tenant (folder M6-admin-ui-tenant)
+- T001: Auth + Tenants API clients; T002: Admin shell layout (Sider+Menu); T003: Login page
+- T004: Tenant list page with colored Tags + Delete Popconfirm; T005: TenantForm shell + Branding + Claim Types sections
+- T006: Approval Rules + Notifications form sections; T007: SLA + Custom Fields form sections
+- T008: Zod validation + form.setFields error mapping + edit pre-populate + Next.js 16 use(params); T009: useTenantTheme hook
+----------
+
+AI Response Summary:
+- Implemented all 9 M6 admin-ui-tenant tasks: API clients, AdminShell, login page, tenant list with Popconfirm delete
+- Built shared TenantForm with all 6 config sections (Branding+ClaimTypes+ApprovalRules+Notifications+SLA+CustomFields) in one component
+- TenantConfigSchema Zod validation on submit; edit page pre-populates via setFieldsValue; use(params) for Next.js 16
+- useTenantTheme hook sets AntdProvider theme on mount, resets on unmount
+- Fixed TS error: NotificationChannel cast in assembleConfig; next build passes, all 8 routes present
+----------
+

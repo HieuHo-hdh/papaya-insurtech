@@ -1,3 +1,19 @@
+# T003: Login Page
+
+**Module:** M6 · admin-ui-tenant
+**Story:** S2
+**Tags:** FE
+**Status:** done
+**Size:** S
+
+## Description
+Implement `app/(auth)/login/page.tsx` — a centered login form using Ant Design Form, Input.Password, and Button. On success, saves JWT and redirects to `/tenants`.
+
+## Detail
+
+### `fe/app/(auth)/login/page.tsx`
+
+```tsx
 'use client'
 
 import { useEffect } from 'react'
@@ -63,3 +79,30 @@ export default function LoginPage() {
     </Flex>
   )
 }
+```
+
+**Notes:**
+- If already logged in (`hasToken()`), immediately redirect to `/tenants` — prevents double login
+- Zod validates before sending to API (client-side guard); API 401 shows `message.error`
+- Seeded credentials: `admin@papaya.dev` / `Admin@1234`
+- `(auth)` route group is NOT wrapped by `AdminShell` — it has no sidebar
+
+## Expectation
+Visiting `/login` shows a centered card with email + password fields. Submit with correct credentials → JWT stored → redirect to `/tenants`. Wrong credentials → error message shown.
+
+## Acceptance Criteria
+- [ ] Centered card layout, no sidebar
+- [ ] Email + Password fields with Ant Design components
+- [ ] Validates with `LoginSchema` before API call
+- [ ] On success: `saveToken(token)` then navigate to `/tenants`
+- [ ] On failure: `message.error` with server message
+- [ ] Already-authenticated users redirected to `/tenants` immediately
+- [ ] No raw HTML for text
+
+## Dependencies
+- Depends on: T001 (authApi, saveToken, hasToken)
+- Blocks: T004
+
+## References
+- Architecture: Auth — `POST /api/auth/login`, seeded admin credentials
+- Standards: Ant Design Form; `Typography.*` for all text; Zod validation before API
