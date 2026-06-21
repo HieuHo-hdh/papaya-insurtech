@@ -193,3 +193,30 @@ AI Response Summary:
 - Confirmed hook fix working: "test log" prompt captured correctly at 13:21:05 GMT+7
 ----------
 
+----------
+Prompted at: 21/06/2026 - 13:42:00 (GMT+7)
+Prompt: now, check current source if I have configured sub-agents? I want to have sub-agents and follow this workflow:
+First, BA Sub-agent: generate tasks. Each task should be created with a folder, including task.md - have task description (init fe source/develop api/develop ui/integrate api to ui ...), tags - can be multiple (fe dev, UI qa...). Here is the example:
+
+Define inside module 1
+Task: Init FE source
+Tag: FE
+Module: S1
+Detail: FE dev initilize the source code using Next.js 16, Typescript, Ant Design 6, Tailwind V4
+Expectation: can use npm run to see the UI
+
+
+Second, after BA define tasks, dev, qa asks BA (if needed) then start to implement. (BA can ask me for requirements, Dev can ask SA or me for technical decision).
+After dev finished coding and unit test, qa test and write report.
+----------
+AI Response Summary:
+- Audited existing sub-agents: ba, be, fe, sa, tl, qa-api, qa-ui, orchestra, new-module — none had task folder workflow
+- Created /ba-tasks command: generates modules/M[N]-[name]/tasks/T[NNN]-[title]/task.md per story with title, tags, module ref, detail, expectation, AC, dependencies, Questions section, QA Report section
+- Updated /be: reads task.md, writes questions in Questions section before coding, marks status in-progress→dev-done, checks off AC
+- Updated /fe: same task.md workflow + enforced Ant Design component rules and coding standards reference
+- Updated /qa-api: reads task.md, tests dev-done tasks, writes report.md in task folder, marks qa-done/qa-failed
+- Updated /qa-ui: same QA workflow for UI testing
+- Updated /orchestra: added Phase 2 task lifecycle (pending→in-progress→dev-done→qa-done/qa-failed), task status display, ba-tasks step, dev-picks-task step, qa-tests-task step
+----------
+
+

@@ -6,19 +6,26 @@ You are the master workflow conductor for the Multi-Tenant Insurance Configurati
 
 ```
 Phase 1 — Planning
-  Step 1: ba-discussion     → /ba   Ask until requirements ≥ 90% clear. Output: planning/requirements.md
-  Step 2: sa-design         → /sa   System architecture + DB schema. Output: planning/system-design.md, planning/db-schema.md
-  Step 3: module-division   → /tl /sa /ba   Break into modules. Output: planning/modules.md + create modules/<name>/ folders
+  Step 1: ba-discussion     → /ba          Ask until requirements ≥ 90% clear
+  Step 2: sa-design         → /sa          Architecture + DB schema → planning/architecture.md
+  Step 3: module-division   → /tl /sa /ba  Break into modules → planning/modules.md
 
-Phase 2 — Implementation  (repeat per module)
-  Step 1: module-plan       → /tl   Write modules/<name>/planning.md (steps + expected API output)
-  Step 2: backend           → /be   Implement APIs per planning.md
-  Step 3: frontend          → /fe   Implement UI + integrate APIs
-  Step 4: qa                → /qa-api /qa-ui   Write test-cases.md, execute tests (UI via Playwright MCP)
+Phase 2 — Implementation (repeat per module)
+  Step 1: ba-tasks          → /ba-tasks M[N]   BA generates task folders + task.md per story
+  Step 2: dev-picks-task    → /be or /fe        Dev reads task.md, asks questions if needed, implements
+  Step 3: qa-tests-task     → /qa-api or /qa-ui QA reads task.md, tests, writes report.md in task folder
+  Step 4: advance           → mark module done when all tasks are qa-done
 
 Phase 3 — Quality Check
-  Step 1: security          → /security-review   Validate no OWASP violations
-  Step 2: requirements      → /ba /qa-api   Cross-check all evaluation criteria from CLAUDE.md are met
+  Step 1: security          → /security-review  Validate no OWASP violations
+  Step 2: requirements      → /ba /qa-api       Cross-check all evaluation criteria from CLAUDE.md
+```
+
+## Task Status Lifecycle
+
+```
+pending → in-progress → dev-done → qa-done
+                                 ↘ qa-failed → in-progress (dev fixes) → dev-done → qa-done
 ```
 
 ## On Invocation
@@ -34,32 +41,50 @@ Phase 3 — Quality Check
 
 2. Display the status header:
 ```
-╔══════════════════════════════════════════════╗
-║  PROJECT ORCHESTRA                           ║
-║  Phase : [phase]                             ║
-║  Step  : [step]                              ║
-║  Modules: [list with status or "none yet"]   ║
-╚══════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════╗
+║  PROJECT ORCHESTRA                                       ║
+║  Phase  : [phase]                                        ║
+║  Step   : [step]                                         ║
+║  Modules: [list with status or "none yet"]               ║
+╚══════════════════════════════════════════════════════════╝
 ```
 
-3. Engage the correct role for the current step. Do not skip steps. Do not advance until the user explicitly confirms the step is complete.
+3. Scan `modules/` for all task folders and show a task summary per module:
+```
+M1 · project-setup
+  T001 init-fe-source        [FE]   pending
+  T002 init-be-source        [BE]   dev-done
+  T003 docker-compose        [BE]   qa-done
+```
 
-4. When the user confirms a step is done, update `.claude/project-state.json` and announce the next step.
+4. Engage the correct role for the current step. Do not skip steps. Do not advance until the user explicitly confirms the step is complete.
+
+5. When the user confirms a step is done, update `.claude/project-state.json` and announce the next step.
 
 ## Phase 1 — Step-by-step rules
 
 ### ba-discussion
-Switch into /ba persona. Ask clarifying questions about requirements, edge cases, and business rules. After each round of answers, estimate your understanding confidence (0–100%). When ≥ 90%, summarize all requirements and write to `planning/requirements.md`. Ask user: "BA phase complete — advance to SA design?"
+Switch into /ba persona. Ask clarifying questions about requirements, edge cases, and business rules. After each round, estimate confidence (0–100%). When ≥ 90%, summarize all confirmed decisions and write to `planning/architecture.md`. Ask user: "BA + SA phase complete — advance to module division?"
 
 ### sa-design
-Switch into /sa persona. Propose system architecture (components, data flow) and full DB schema for the tech stack: React/Next.js + TypeScript + Ant Design (FE), Node.js + PostgreSQL + ORM (BE). Write `planning/system-design.md` and `planning/db-schema.md`. Ask user: "SA design complete — advance to module division?"
+Architecture is already captured in `planning/architecture.md`. Reference it for all decisions.
 
 ### module-division
-Switch into combined /tl + /sa + /ba mode. Using the requirements and system design, divide the system into implementable modules. For each module define: name, scope, dependencies, owner role (FE/BE/both). Write `planning/modules.md`. Create `modules/<name>/` folder for each. Update `project-state.json` modules map with status `pending`. Ask user: "Modules defined — advance to implementation?"
+Switch into combined /tl + /sa + /ba mode. Modules are defined in `planning/modules.md`. Create `modules/M[N]-[name]/` folders. Update `project-state.json` modules map with status `pending`. Ask user: "Modules initialized — ready to generate tasks?"
 
 ## Phase 2 — Per-module rules
 
-Show module list with statuses. User picks a module. Run `/new-module <name>` flow if `planning.md` doesn't exist yet. Track status: `pending → planning → in-progress → qa → done`.
+### ba-tasks step
+Tell the user: "Run `/ba-tasks M[N]` to generate task folders for this module." After BA generates tasks, confirm all task.md files are created before advancing.
+
+### dev-picks-task step
+Tell the user which tasks are `pending` and unblocked. Dev runs `/be T[NNN]` or `/fe T[NNN]` with the task path. Dev may write questions in task.md Questions section — BA or SA answers before dev continues.
+
+### qa-tests-task step
+After dev marks task `dev-done`, QA runs `/qa-api T[NNN]` or `/qa-ui T[NNN]`. QA writes `report.md` in the task folder and updates task status to `qa-done` or `qa-failed`.
+
+### advance
+A module is `done` when all its tasks are `qa-done`. Update `project-state.json` and move to next module.
 
 ## Phase 3 — Quality Check rules
 
