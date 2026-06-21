@@ -219,4 +219,29 @@ AI Response Summary:
 - Updated /orchestra: added Phase 2 task lifecycle (pending→in-progress→dev-done→qa-done/qa-failed), task status display, ba-tasks step, dev-picks-task step, qa-tests-task step
 ----------
 
+----------
+Prompted at: 21/06/2026 - 13:49:38 (GMT+7)
+Prompt: ba-tasks M1
+----------
+[2026-06-21 13:50:09 (GMT+7)] Session started: 77b4ad81-55db-405b-9fd3-ccfdd69af498
+[2026-06-21 13:51:02 (GMT+7)] Session started: 575d7152-adeb-4afc-a2a0-51e96e7424e8
+----------
+Prompted at: 21/06/2026 - 13:51:10 (GMT+7)
+Prompt: ba-tasks M1
+----------
+AI Response Summary:
+- Read ba-tasks.md command spec, modules.md, architecture.md, and coding-standards.md for M1 context
+- Generated 13 tasks for M1 · project-setup (T001–T013) in challenges/modules/M1-project-setup/tasks/
+- Tasks cover: FE init, BE init, Docker Compose, shared types/schemas, env config, dayjs config, response helpers, AppError, validate middleware, auth middleware, AntdProvider, API client, FE shared types copy
+- Assigned correct tags (FE/BE/FE+BE/DevOps), sizes (S/M), and dependency chains between tasks
+----------
+
+----------
+Prompted at: 21/06/2026 - 13:56:04 (GMT+7)
+Prompt: dev or QA reads each task.md, adds questions in the Questions section, then starts work
+----------
+AI Response Summary:
+- User asked to create a status file in M1-project-setup summarizing all completed tasks
+- Created challenges/modules/M1-project-setup/status.md with status: done, per-task summary, and verification table
+----------
 

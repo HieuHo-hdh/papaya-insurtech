@@ -1,0 +1,32 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: papaya_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-papaya}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-papaya_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-papaya_db}
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  be:
+    build: ./be
+    container_name: papaya_be
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-papaya}:${POSTGRES_PASSWORD:-papaya_secret}@postgres:5432/${POSTGRES_DB:-papaya_db}
+      JWT_SECRET: ${JWT_SECRET:-supersecret_change_me_in_production}
+      PORT: 3001
+    ports:
+      - '3001:3001'
+    volumes:
+      - ./be:/app
+      - /app/node_modules
+
+volumes:
+  postgres_data:
