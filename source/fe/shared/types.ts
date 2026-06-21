@@ -53,10 +53,10 @@ export interface CustomField {
   label: string
   required: boolean
   type: CustomFieldType
-  maxLength?: number   // text, text_area
-  min?: number         // number
-  max?: number         // number
-  options?: string[]   // select
+  maxLength?: number // text, text_area
+  min?: number // number
+  max?: number // number
+  options?: string[] // select
 }
 
 export interface TenantConfig {
@@ -78,7 +78,7 @@ export interface ProcessClaimResult {
   requiredDocuments: string[]
   approvalTiers: { tier: string }[]
   notifications: { event: NotificationEvent; channels: string[]; template?: string }[]
-  slaDeadline: string        // ISO string, calculated in tenant timezone via dayjs
+  slaDeadline: string // ISO string, calculated in tenant timezone via dayjs
   customFieldsRequired: CustomField[]
 }
 

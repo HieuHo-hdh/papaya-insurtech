@@ -1,6 +1,4 @@
-'use client'
-
-import { ConfigProvider } from 'antd'
+import { App, ConfigProvider } from 'antd'
 import { createContext, useContext, useState, type ReactNode } from 'react'
 import { buildTheme } from '@/lib/theme'
 
@@ -32,7 +30,7 @@ export function AntdProvider({ children }: { children: ReactNode }) {
   return (
     <ThemeContext.Provider value={{ setPrimaryColor, setSecondaryColor, resetTheme }}>
       <ConfigProvider theme={buildTheme(primaryColor, secondaryColor)}>
-        {children}
+        <App>{children}</App>
       </ConfigProvider>
     </ThemeContext.Provider>
   )
