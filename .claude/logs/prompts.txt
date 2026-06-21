@@ -360,3 +360,21 @@ AI Response Summary:
 - T004: ClaimTester panel on tenant detail page — dynamic custom field inputs by type, ProcessClaimResult Descriptions display
 ----------
 
+AI Response Summary:
+- Removed challenges/.claude/project-state.json (and entire challenges/.claude/)
+- Created documents/ at papaya root; moved modules/ and planning/ into it
+- Moved CLAUDE.md to papaya root (auto-read by Claude); updated planning/ refs to documents/planning/
+- Moved .claude/commands/ to papaya root .claude/; updated all modules/ and planning/ path refs in all 6 commands
+- Updated log path in CLAUDE.md from ../.claude/ to .claude/ (now at root)
+----------
+
+----------
+Prompted at: 21/06/2026 - 17:19:25 (GMT+7)
+Prompt: now read through the repo, change challenges to source. I've just rename the @challenges/ folder to @source/
+----------
+AI Response Summary:
+- Replaced all challenges/ references with source/ across documents/*.md (bulk sed)
+- Updated settings.local.json: challenges/shared/sync.sh → source/shared/sync.sh
+- node_modules hits confirmed false positives (prose in type-fest); no action needed
+----------
+
