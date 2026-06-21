@@ -245,3 +245,22 @@ AI Response Summary:
 - Created challenges/modules/M1-project-setup/status.md with status: done, per-task summary, and verification table
 ----------
 
+AI Response Summary:
+- Generated 5 tasks for M2 · database in challenges/modules/M2-database/tasks/
+- T001: Prisma schema (users, tenants, tenant_configs models + relations + unique index)
+- T002: Initial migration (prisma migrate dev --name init)
+- T003: Seed admin user + 3 bare tenant rows (S4 split part a)
+- T004: Seed SafeGuard full TenantConfig (S4 split part b)
+- T005: Seed HealthFirst + GovHealth full TenantConfigs (S4 split part c)
+- S4 was size L, split into 3 tasks (T003/T004/T005); T004 and T005 are parallel after T003
+----------
+
+AI Response Summary:
+- Implemented all M2 tasks: Prisma schema (T001), initial migration (T002), full seed script (T003-T005)
+- Schema: User, Tenant, TenantConfig models with @@unique([tenantId, version]) constraint
+- Migration applied to papaya_db in Docker; seed is idempotent (upsert)
+- Seeded admin@papaya.dev + SafeGuard/HealthFirst/GovHealth with full TenantConfig JSONs
+- Fixed tsconfig.json to exclude prisma/ from rootDir build (seed runs via ts-node directly)
+- Created M2-database/status.md; tsc --noEmit and prisma db seed both pass clean
+----------
+
