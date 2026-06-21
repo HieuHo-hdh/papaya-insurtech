@@ -2,6 +2,14 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Architecture
+
+All confirmed design decisions (data model, API contracts, validation rules, processClaim logic) are in **`planning/architecture.md`**. Read it before implementing anything.
+
+## Coding Standards
+
+Folder structure, naming conventions, component rules, and patterns are in **`planning/coding-standards.md`**. Follow these strictly — no raw HTML for text/layout on FE, no business logic in controllers on BE.
+
 ## Project Overview
 
 This is a **Multi-Tenant Insurance Configuration Platform** — a coding challenge. The system lets an ops team configure claim processing behavior per insurance company (tenant) without code changes.
