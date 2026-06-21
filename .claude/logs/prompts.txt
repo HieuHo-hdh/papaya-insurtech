@@ -323,3 +323,17 @@ AI Response Summary:
 - Fixed TS error: resolveNotifications return type uses NotificationEvent not string; all 39 tests pass, tsc --noEmit clean
 ----------
 
+AI Response Summary:
+- Generated M6 · config-tools-api tasks (1 story → 1 task)
+- T001: GET /api/diff?a=:id&b=:id — flat path deep-diff of two tenants' active configs
+- Task includes full service/controller/route implementation detail, flatDiff algorithm, array-as-atomic-leaf rationale
+- Task created at modules/M5-config-tools-api/tasks/T001-diff-endpoint/task.md
+----------
+
+AI Response Summary:
+- Implemented M6 T001: diff.service.ts (flatDiff algorithm), diff.controller.ts, diff.routes.ts
+- flatDiff: recurses into plain objects by key, treats arrays as atomic via JSON.stringify, emits {path, valueA, valueB} at differing leaves
+- tsc --noEmit clean, all 39 tests pass
+- Marked T001 done, created M6 status.md
+----------
+
