@@ -1,4 +1,6 @@
 import { z } from 'zod'
+import dayjs from 'dayjs'
+import type { CustomField } from './types'
 
 export const ClaimTypeEnum = z.enum(['OUTPATIENT', 'INPATIENT', 'DENTAL', 'MATERNITY', 'OPTICAL'])
 export const NotificationEventEnum = z.enum(['claim_submitted', 'approved', 'rejected', 'payment_sent'])
@@ -64,7 +66,7 @@ export const SlaConfigSchema = z.object({
   timezone: z.string().min(1, 'Timezone is required'),
   weekdays: z.array(WeekdayEnum).min(1, 'At least one business day is required'),
   holidays: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD')),
-  perClaimType: z.record(ClaimTypeEnum, z.number().int().min(1, 'SLA must be at least 1 business day')),
+  perClaimType: z.record(z.string(), z.number().int().min(1, 'SLA must be at least 1 business day')),
   escalationContacts: z.array(z.string().email('Must be a valid email')),
 })
 
@@ -102,10 +104,18 @@ export const TenantConfigSchema = z.object({
   customFields: z.array(CustomFieldSchema),
 })
 
-// ─── Claim data + custom field value validation ───────────────────────────────
+// ─── Tenant CRUD ─────────────────────────────────────────────────────────────
 
-import type { CustomField, TenantConfig } from './types'
-import dayjs from 'dayjs'
+export const CreateTenantSchema = z.object({
+  name: z.string().min(1, 'Tenant name is required'),
+  config: TenantConfigSchema,
+})
+
+export const UpdateTenantSchema = z.object({
+  config: TenantConfigSchema,
+})
+
+// ─── Claim data + custom field value validation ───────────────────────────────
 
 export const ClaimDataSchema = z.object({
   claimType: ClaimTypeEnum,

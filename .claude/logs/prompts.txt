@@ -293,3 +293,24 @@ AI Response Summary:
 - Synced shared/schemas.ts to challenges/shared/ and fe/shared/
 ----------
 
+AI Response Summary:
+- Generated 8 tasks for M4 · tenant-api in challenges/modules/M4-tenant-api/tasks/
+- T001-T005: tenants module (list, get, create, update, soft-delete)
+- T006-T008: versions module (list versions, get version, rollback)
+- All S or M size, no splits needed; T001-T003 parallelizable, T004-T008 chain from T003
+- T008 (rollback) notes path discrepancy between architecture spec and current app.ts mount — dev to resolve
+----------
+
+AI Response Summary:
+- Explained T008 rollback path confusion: app.ts mounts versionRoutes at /api/tenants/:tenantId/versions, which would produce wrong path /versions/:vId/rollback instead of architecture's /rollback/:vId
+- Fix: add separate mount in app.ts: app.use('/api/tenants/:tenantId/rollback', rollbackRoutes) and route router.post('/:versionId', handler)
+----------
+
+AI Response Summary:
+- Implemented all M4 tasks: tenants service/controller/routes (list, get, create, update, delete) + versions service/controller/routes (list, get, rollback)
+- Rollback path resolved in tenants.routes.ts: POST /api/tenants/:id/rollback/:versionId matches architecture spec
+- Fixed Zod v4 breaking change: z.record(ClaimTypeEnum) requires all enum keys in v4; changed perClaimType to z.record(z.string(), ...) for partial SLA configs
+- All 8 tasks smoke-tested live; tsc clean; 7/7 unit tests pass
+- Created M4-tenant-api/status.md
+----------
+

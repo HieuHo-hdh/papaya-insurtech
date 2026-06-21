@@ -64,7 +64,7 @@ export const SlaConfigSchema = z.object({
   timezone: z.string().min(1, 'Timezone is required'),
   weekdays: z.array(WeekdayEnum).min(1, 'At least one business day is required'),
   holidays: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD')),
-  perClaimType: z.record(ClaimTypeEnum, z.number().int().min(1, 'SLA must be at least 1 business day')),
+  perClaimType: z.record(z.string(), z.number().int().min(1, 'SLA must be at least 1 business day')),
   escalationContacts: z.array(z.string().email('Must be a valid email')),
 })
 
@@ -100,6 +100,17 @@ export const TenantConfigSchema = z.object({
   notifications: z.array(NotificationConfigSchema),
   sla: SlaConfigSchema,
   customFields: z.array(CustomFieldSchema),
+})
+
+// ─── Tenant CRUD ─────────────────────────────────────────────────────────────
+
+export const CreateTenantSchema = z.object({
+  name: z.string().min(1, 'Tenant name is required'),
+  config: TenantConfigSchema,
+})
+
+export const UpdateTenantSchema = z.object({
+  config: TenantConfigSchema,
 })
 
 // ─── Claim data + custom field value validation ───────────────────────────────
