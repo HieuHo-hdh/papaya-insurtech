@@ -1,0 +1,35 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '\"[\" + ((now + 25200) | strftime(\"%Y-%m-%d %H:%M:%S\")) + \" (GMT+7)] Session started: \" + .session_id' >> ./.claude/logs/prompts.txt 2>/dev/null || true"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "INPUT=$(cat); echo \"$INPUT\" | jq -r '\"----------\\nPrompted at: \" + ((now + 25200) | strftime(\"%d/%m/%Y - %H:%M:%S\")) + \" (GMT+7)\\nPrompt: \" + .prompt + \"\\n----------\"' >> \"./.claude/logs/prompts.txt\" 2>/dev/null || true"
+          }
+        ]
+      }
+    ],
+"PreToolUse": [
+      {
+        "matcher": "Read|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r 'if (.tool_input.file_path // \"\" | test(\"\\\\.env(\\\\..*)?$\")) then {\"continue\": false, \"stopReason\": \"Blocked: reading .env files is not allowed.\"} else {\"continue\": true} end'"
+          }
+        ]
+      }
+    ]
+  }
+}

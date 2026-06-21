@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Read|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r 'if (.tool_input.file_path // \"\" | test(\"\\\\.env(\\\\..*)?$\")) then {\"continue\": false, \"stopReason\": \"Blocked: reading .env files is not allowed.\"} else {\"continue\": true} end'"
+          }
+        ]
+      }
+    ]
+  }
+}
