@@ -264,3 +264,32 @@ AI Response Summary:
 - Created M2-database/status.md; tsc --noEmit and prisma db seed both pass clean
 ----------
 
+AI Response Summary:
+- Generated 3 tasks for M3 · auth-api in challenges/modules/M3-auth-api/tasks/
+- T001: Login endpoint (POST /api/auth/login) — bcrypt verify + 24h JWT sign, BE size M
+- T002: Logout endpoint (POST /api/auth/logout) — stateless 200, BE size S, depends T001
+- T003: Auth middleware integration — already done in M1 (T010), marked status: done
+----------
+
+AI Response Summary:
+- Implemented M3 auth-api: login service (bcrypt verify + JWT sign), controller, routes with validate+asyncHandler
+- Added LoginSchema to shared/schemas.ts and synced to shared/ and fe/shared/
+- Created be/src/utils/asyncHandler.ts — wraps async controllers for Express 4 error propagation
+- All 5 smoke-test scenarios passed: valid login, wrong password, missing field, logout with/without token
+- Created M3-auth-api/status.md; tsc --noEmit clean
+----------
+
+AI Response Summary:
+- Added 7 unit tests for auth.service.ts in src/modules/auth/__tests__/auth.service.test.ts (mocking Prisma, bcrypt, env)
+- Installed jest + ts-jest + @types/jest in BE; created jest.config.js with moduleNameMapper for @/* paths
+- Added test + test:watch scripts to BE package.json; all 7 tests pass
+- Installed dayjs in FE (challenges/fe) — shared/schemas.ts imports dayjs for validateCustomFieldValues
+- Clarified: challenges/shared/ doesn't need its own package.json; files are copied to be/src/shared/ and fe/shared/ where zod and dayjs are available; FE now has dayjs, tsc --noEmit passes clean
+----------
+
+AI Response Summary:
+- Upgraded BE zod from v3 to v4.4.3 to match FE version
+- tsc --noEmit clean on both BE and FE after upgrade; all 7 unit tests still pass
+- Synced shared/schemas.ts to challenges/shared/ and fe/shared/
+----------
+

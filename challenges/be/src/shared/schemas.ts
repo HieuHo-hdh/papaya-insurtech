@@ -175,6 +175,13 @@ export function validateCustomFieldValues(
   return errors
 }
 
+// ─── Auth ─────────────────────────────────────────────────────────────────────
+
+export const LoginSchema = z.object({
+  email: z.string().email('Must be a valid email'),
+  password: z.string().min(1, 'Password is required'),
+})
+
 // ─── Env ──────────────────────────────────────────────────────────────────────
 
 export const EnvSchema = z.object({
