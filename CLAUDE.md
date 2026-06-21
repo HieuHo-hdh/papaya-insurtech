@@ -14,7 +14,7 @@ Folder structure, naming conventions, component rules, and patterns are in **`do
 
 This is a **Multi-Tenant Insurance Configuration Platform** — a coding challenge. The system lets an ops team configure claim processing behavior per insurance company (tenant) without code changes.
 
-**Tech stack:** Next.js 16 + TypeScript + Ant Design 5 + Tailwind CSS + Zod (FE) | Node.js + Express + TypeScript + Prisma + PostgreSQL (BE)
+**Tech stack:** React 19 + Vite 8 + React Router v7 + TypeScript + Ant Design 6 + Tailwind v4 + Zod (FE) | Node.js + Express + TypeScript + Prisma + PostgreSQL (BE)
 
 Two main surfaces:
 1. **Admin UI** — CRUD for tenant configs, preview mode, config diff, version history + rollback

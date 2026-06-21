@@ -378,3 +378,141 @@ AI Response Summary:
 - node_modules hits confirmed false positives (prose in type-fest); no action needed
 ----------
 
+----------
+Prompted at: 21/06/2026 - 17:33:34 (GMT+7)
+Prompt: before testing and hosting, I see that the UI is not user-friendly and well-designed. Generate for me a .md file for developing front-end using Antd Design + tailwind (I have implemented code already), I want it to be modern, user-friendly, responsible.
+----------
+AI Response Summary:
+- Created documents/planning/ui-design-guide.md — comprehensive FE redesign guide
+- Covers: design tokens, admin shell (dark sider, breadcrumb, avatar dropdown), login split-screen, tenant list (stats cards, search, avatar rows), tenant detail (tabs layout), TenantForm (section cards, collapse), diff page (Steps, category filter, row coloring), ClaimTester (2-col, Statistic+Steps result), responsive breakpoints, skeleton loading, App.useApp() notifications
+----------
+
+----------
+Prompted at: 21/06/2026 - 17:36:32 (GMT+7)
+Prompt: now apply to change the UI
+----------
+AI Response Summary:
+- Applied full UI redesign across 9 files; tsc --noEmit clean; next build passes all 8 routes
+- theme.ts: indigo-600 primary, dark Menu tokens; AntdProvider: wrapped with <App>
+- AdminShell: dark indigo sider, breadcrumbs, avatar Dropdown, mobile Drawer
+- Login: split-screen (indigo brand panel left / form right)
+- Tenants list: Statistic stats row, search bar, avatar+ID column, clickable rows, Skeleton loading
+- Tenant detail: back button header + Tabs (Config / History / Claim Tester); new/[id] pages both updated
+- TenantForm: section cards with icons, Row/Col grid, Collapse notifications, PlusOutlined/DeleteOutlined buttons
+- Diff page: Steps progress, category filter Select, amber row coloring, SwapOutlined icon
+- ClaimTester: 2-column Row/Col, Statistic SLA, Steps approval, checklist docs
+----------
+
+AI Response Summary:
+- tenants/page.tsx: removed unused enabledTypesCount function
+- diff/page.tsx: fixed Steps items content → description (linter had swapped to deprecated key)
+- tsc --noEmit clean after both fixes
+----------
+
+AI Response Summary:
+- Added Section 0 "Ant Design 6.4 Reference" to ui-design-guide.md (12 sub-sections)
+- Covers: App.useApp(), Statistic styles prop, Dropdown menu prop, Collapse items, Steps items, Drawer styles, Grid.useBreakpoint(), ThemeConfig structure, Flex vs Space, Form patterns, common gotchas table
+- Fixed stale examples in sections 2/4/8: valueStyle→styles, deep useBreakpoint import→Grid destructure
+----------
+
+[2026-06-21 18:00:31 (GMT+7)] Session started: 385c16c3-8858-4c7c-a63c-1769fec882fc
+----------
+Prompted at: 21/06/2026 - 18:01:03 (GMT+7)
+Prompt: Now add eslint + prettier, for front-end first
+----------
+[2026-06-21 18:03:03 (GMT+7)] Session started: 575d7152-adeb-4afc-a2a0-51e96e7424e8
+AI Response Summary:
+- Added Prettier (v3) + eslint-config-prettier to source/fe devDependencies
+- Created .prettierrc (single quotes, no semi, 100 print width) and .prettierignore
+- Updated eslint.config.mjs to extend eslint-config-prettier (disables conflicting rules)
+- Added format / format:check scripts to package.json
+- Switched primary color to teal (#0D9488) and updated all hardcoded indigo/purple hex values across tsx files
+- Fixed ESLint errors: moved loadTenants/loadVersions declarations before useEffect; removed unused Spin and assembleConfig imports; removed unused TenantConfig type import
+----------
+
+AI Response Summary:
+- Audited AntD 6.4 type definitions for @deprecated props
+- Fixed Steps items: `description` → `content` in diff/page.tsx (3 items)
+- Fixed Statistic: `valueStyle` → `styles={{ content }}` in ClaimTester.tsx
+- ESLint passes with 0 errors and 0 warnings after fixes
+----------
+
+AI Response Summary:
+- Created M9 · vite-migration module plan at `documents/modules/M9-vite-migration/`
+- status.md documents goal, route map, and all Next.js → React Router change rules
+- T001: install/remove packages (next/eslint-config-next → vite/react-router-dom)
+- T002: Vite entry files (index.html, vite.config.ts, src/main.tsx, src/App.tsx, src/index.css)
+- T003: page components in pages/ folder (5 pages ported from app/ with router hook swaps)
+- T004: AdminShell update (children → Outlet, useRouter/usePathname → useNavigate/useLocation) + client.ts env var rename
+- T005: config files update (tsconfig, eslint, .env, .gitignore, .prettierignore, vercel.json)
+- T006: cleanup old Next.js files + tsc --noEmit verification
+----------
+
+AI Response Summary:
+- Migrated frontend from Next.js 16 to Vite 8 + React Router v7
+- Installed: vite, @vitejs/plugin-react, @tailwindcss/vite, react-router-dom, typescript-eslint, eslint-plugin-react-hooks, eslint-plugin-react-refresh
+- Created: index.html, vite.config.ts, vercel.json, vite-env.d.ts, src/main.tsx, src/App.tsx, src/index.css
+- Created pages/: LoginPage, TenantsPage, NewTenantPage, TenantDetailPage, DiffPage (useNavigate/useParams replacing useRouter/use(params))
+- Updated AdminShell to use <Outlet /> instead of {children}, React Router hooks instead of next/navigation
+- Updated lib/api/client.ts to use import.meta.env.VITE_API_URL
+- Updated tsconfig.json, eslint.config.mjs (removed eslint-config-next), package.json scripts (vite/build/preview)
+- Deleted: app/, next.config.ts, next-env.d.ts, postcss.config.mjs, AGENTS.md, CLAUDE.md
+- tsc --noEmit: 0 errors; eslint: 0 errors, 2 harmless warnings; vite dev server boots in 1162ms
+----------
+
+AI Response Summary:
+- Updated architecture.md: FE stack row → React 19 + Vite 8 + React Router v7
+- Updated modules.md: tech stack header + M1 S1 story
+- Updated coding-standards.md: section header, folder structure (app/ → src/ + pages/), env var note, added Routing reference table
+- Updated CLAUDE.md: tech stack line
+----------
+
+----------
+Prompted at: 21/06/2026 - 21:04:44 (GMT+7)
+Prompt: Now, for current M9, BA adds more tasks, asks SA if you do not understand.
+- 007: Update state-management using redux, should add useAppSelector and apply in pages. Also pay attention to add, update, delete to update list inside redux
+- Add unit tests for UI, should also care for coverage. You can break into different tasks for different pages/modules. I want to ensure quality for form validation, form submission.
+----------
+AI Response Summary:
+- Created T007: Redux state management task (tenantsSlice, authSlice, typed hooks, apply in 3 pages)
+- Created T008: Unit test setup (Vitest + Testing Library + MSW) + LoginPage test suite
+- Created T009: TenantForm unit tests (Ant Design validation + Zod schema unit tests)
+- Created T010: TenantsPage unit tests (Redux store render, delete dispatch, search filter)
+- Created T011: ClaimTester unit tests (custom field types, API submission, result panel)
+- Updated M9 status.md summary table with all 5 new tasks
+----------
+
+AI Response Summary:
+- Updated coverage threshold from 70% to 100% in vitest.config.ts (T008)
+- Updated all "≥ 70%" references to "100%" in T008, T009, T010, T011 Expectation and AC sections
+----------
+
+----------
+Prompted at: 21/06/2026 - 21:13:46 (GMT+7)
+Prompt: now implement T007
+----------
+[2026-06-21 21:14:41 (GMT+7)] Session started: 30d908d0-d14f-4513-80d4-b92586596913
+----------
+Prompted at: 21/06/2026 - 21:17:11 (GMT+7)
+Prompt: in @source/be/ the unit tests are not correct. As a techlead, please write sample unit tests, also I want to have 100% coverage. BE dev can base on techlead to continue on test creation. FE dev can base on test and integrate apis to UI easily
+----------
+AI Response Summary:
+- Implemented T007: installed @reduxjs/toolkit + react-redux
+- Created store/slices/tenantsSlice.ts (setTenants, addTenant, updateTenantInList, removeTenant)
+- Created store/slices/authSlice.ts (token initialized from localStorage)
+- Created store/index.ts, hooks/useAppSelector.ts, hooks/useAppDispatch.ts
+- Wrapped <App /> in <Provider> in src/main.tsx
+- Updated TenantsPage (Redux list/total), NewTenantPage (addTenant), TenantDetailPage (updateTenantInList)
+- tsc --noEmit passes; task marked dev-done
+----------
+
+AI Response Summary:
+- Implemented T008: installed Vitest + Testing Library + MSW, removed conflicting jest packages
+- Fixed Node.js 22 built-in localStorage conflict via vi.stubGlobal in setupTests.ts
+- Mocked window.matchMedia for Ant Design compatibility in jsdom
+- Created vitest.config.ts, setupTests.ts, MSW server/handlers, renderWithProviders, LoginPage.test.tsx
+- Resolved 100% branch coverage by removing dead `?? []` branch and adding fallback message test
+- All 6 LoginPage tests pass; npm run test exits 0; LoginPage.tsx at 100% all coverage metrics
+- Task marked dev-done
+----------
+

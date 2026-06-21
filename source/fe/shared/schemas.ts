@@ -1,10 +1,22 @@
 import { z } from 'zod'
 
 export const ClaimTypeEnum = z.enum(['OUTPATIENT', 'INPATIENT', 'DENTAL', 'MATERNITY', 'OPTICAL'])
-export const NotificationEventEnum = z.enum(['claim_submitted', 'approved', 'rejected', 'payment_sent'])
+export const NotificationEventEnum = z.enum([
+  'claim_submitted',
+  'approved',
+  'rejected',
+  'payment_sent',
+])
 export const NotificationChannelEnum = z.enum(['email', 'sms', 'webhook'])
 export const WeekdayEnum = z.enum(['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'])
-export const CustomFieldTypeEnum = z.enum(['text', 'text_area', 'number', 'date_time', 'boolean', 'select'])
+export const CustomFieldTypeEnum = z.enum([
+  'text',
+  'text_area',
+  'number',
+  'date_time',
+  'boolean',
+  'select',
+])
 
 // ─── Branding ────────────────────────────────────────────────────────────────
 
@@ -25,26 +37,32 @@ export const ClaimTypeConfigSchema = z.object({
 
 // ─── Approval rules ───────────────────────────────────────────────────────────
 
-export const ApprovalTierSchema = z.object({
-  tier: z.string().min(1, 'Tier name is required'),
-  greaterThan: z.number().min(0).optional(),
-  smallerThan: z.number().min(0).optional(),
-  isPrimary: z.boolean().optional(),
-}).refine(
-  (t) => !t.greaterThan || !t.smallerThan || t.greaterThan < t.smallerThan,
-  { message: 'greaterThan must be less than smallerThan' }
-)
+export const ApprovalTierSchema = z
+  .object({
+    tier: z.string().min(1, 'Tier name is required'),
+    greaterThan: z.number().min(0).optional(),
+    smallerThan: z.number().min(0).optional(),
+    isPrimary: z.boolean().optional(),
+  })
+  .refine((t) => !t.greaterThan || !t.smallerThan || t.greaterThan < t.smallerThan, {
+    message: 'greaterThan must be less than smallerThan',
+  })
 
-export const ApprovalRulesSchema = z.object({
-  autoApprovalThreshold: z.number().min(0, 'Threshold must be ≥ 0'),
-  approvalTiers: z.array(ApprovalTierSchema).min(1, 'At least one approval tier is required'),
-}).refine(
-  (r) => r.approvalTiers.some((t) => t.isPrimary),
-  { message: 'At least one tier must be marked as primary (catch-all)' }
-).refine(
-  (r) => r.approvalTiers.every((t) => t.greaterThan === undefined || t.greaterThan > r.autoApprovalThreshold),
-  { message: 'All tier greaterThan values must exceed autoApprovalThreshold' }
-)
+export const ApprovalRulesSchema = z
+  .object({
+    autoApprovalThreshold: z.number().min(0, 'Threshold must be ≥ 0'),
+    approvalTiers: z.array(ApprovalTierSchema).min(1, 'At least one approval tier is required'),
+  })
+  .refine((r) => r.approvalTiers.some((t) => t.isPrimary), {
+    message: 'At least one tier must be marked as primary (catch-all)',
+  })
+  .refine(
+    (r) =>
+      r.approvalTiers.every(
+        (t) => t.greaterThan === undefined || t.greaterThan > r.autoApprovalThreshold,
+      ),
+    { message: 'All tier greaterThan values must exceed autoApprovalThreshold' },
+  )
 
 // ─── Notifications ────────────────────────────────────────────────────────────
 
@@ -64,38 +82,57 @@ export const SlaConfigSchema = z.object({
   timezone: z.string().min(1, 'Timezone is required'),
   weekdays: z.array(WeekdayEnum).min(1, 'At least one business day is required'),
   holidays: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD')),
-  perClaimType: z.record(z.string(), z.number().int().min(1, 'SLA must be at least 1 business day')),
+  perClaimType: z.record(
+    z.string(),
+    z.number().int().min(1, 'SLA must be at least 1 business day'),
+  ),
   escalationContacts: z.array(z.string().email('Must be a valid email')),
 })
 
 // ─── Custom fields ────────────────────────────────────────────────────────────
 
-export const CustomFieldSchema = z.object({
-  name: z.string().min(1, 'Field name is required'),
-  label: z.string().min(1, 'Field label is required'),
-  required: z.boolean(),
-  type: CustomFieldTypeEnum,
-  maxLength: z.number().int().positive().optional(),
-  min: z.number().optional(),
-  max: z.number().optional(),
-  options: z.array(z.string().min(1)).optional(),
-}).superRefine((field, ctx) => {
-  if (field.type === 'select' && (!field.options || field.options.length === 0)) {
-    ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'select type requires at least one option', path: ['options'] })
-  }
-  if (field.type === 'number' && field.min !== undefined && field.max !== undefined && field.min >= field.max) {
-    ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'min must be less than max', path: ['min'] })
-  }
-})
+export const CustomFieldSchema = z
+  .object({
+    name: z.string().min(1, 'Field name is required'),
+    label: z.string().min(1, 'Field label is required'),
+    required: z.boolean(),
+    type: CustomFieldTypeEnum,
+    maxLength: z.number().int().positive().optional(),
+    min: z.number().optional(),
+    max: z.number().optional(),
+    options: z.array(z.string().min(1)).optional(),
+  })
+  .superRefine((field, ctx) => {
+    if (field.type === 'select' && (!field.options || field.options.length === 0)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'select type requires at least one option',
+        path: ['options'],
+      })
+    }
+    if (
+      field.type === 'number' &&
+      field.min !== undefined &&
+      field.max !== undefined &&
+      field.min >= field.max
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'min must be less than max',
+        path: ['min'],
+      })
+    }
+  })
 
 // ─── Tenant config ────────────────────────────────────────────────────────────
 
 export const TenantConfigSchema = z.object({
   branding: BrandingSchema,
-  claimTypes: z.record(ClaimTypeEnum, ClaimTypeConfigSchema).refine(
-    (ct) => Object.values(ct).some((v) => v.enabled),
-    { message: 'At least one claim type must be enabled' }
-  ),
+  claimTypes: z
+    .record(ClaimTypeEnum, ClaimTypeConfigSchema)
+    .refine((ct) => Object.values(ct).some((v) => v.enabled), {
+      message: 'At least one claim type must be enabled',
+    }),
   approvalRules: ApprovalRulesSchema,
   notifications: z.array(NotificationConfigSchema),
   sla: SlaConfigSchema,
@@ -115,7 +152,7 @@ export const UpdateTenantSchema = z.object({
 
 // ─── Claim data + custom field value validation ───────────────────────────────
 
-import type { CustomField, TenantConfig } from './types'
+import type { CustomField } from './types'
 import dayjs from 'dayjs'
 
 export const ClaimDataSchema = z.object({
@@ -126,7 +163,7 @@ export const ClaimDataSchema = z.object({
 
 export function validateCustomFieldValues(
   values: Record<string, string>,
-  definitions: CustomField[]
+  definitions: CustomField[],
 ): Record<string, string[]> {
   const errors: Record<string, string[]> = {}
 

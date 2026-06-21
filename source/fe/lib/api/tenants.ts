@@ -28,8 +28,7 @@ export const tenantsApi = {
   list: (page = 1, pageSize = 20) =>
     apiClient.get<PaginatedTenants>(`/tenants?page=${page}&pageSize=${pageSize}`),
 
-  getById: (id: string) =>
-    apiClient.get<TenantRow>(`/tenants/${id}`),
+  getById: (id: string) => apiClient.get<TenantRow>(`/tenants/${id}`),
 
   create: (name: string, config: TenantConfig) =>
     apiClient.post<TenantRow>('/tenants', { name, config }),
@@ -37,12 +36,11 @@ export const tenantsApi = {
   update: (id: string, config: TenantConfig) =>
     apiClient.put<TenantRow>(`/tenants/${id}`, { config }),
 
-  remove: (id: string) =>
-    apiClient.delete<null>(`/tenants/${id}`),
+  remove: (id: string) => apiClient.delete<null>(`/tenants/${id}`),
 
   listVersions: (id: string, page = 1, pageSize = 20) =>
     apiClient.get<{ data: VersionRow[]; total: number; page: number; pageSize: number }>(
-      `/tenants/${id}/versions?page=${page}&pageSize=${pageSize}`
+      `/tenants/${id}/versions?page=${page}&pageSize=${pageSize}`,
     ),
 
   getVersion: (id: string, versionId: string) =>
