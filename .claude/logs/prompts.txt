@@ -353,3 +353,10 @@ AI Response Summary:
 - Fixed TS error: NotificationChannel cast in assembleConfig; next build passes, all 8 routes present
 ----------
 
+AI Response Summary:
+- Generated 4 tasks for M7 · admin-ui-tools
+- T001: diff.ts + claims.ts API clients; T002: VersionHistory component with Badge+Popconfirm rollback on tenant detail page
+- T003: /diff page — two tenant Selects + compare → Table with type-aware diff cell rendering (Tag/code/Empty)
+- T004: ClaimTester panel on tenant detail page — dynamic custom field inputs by type, ProcessClaimResult Descriptions display
+----------
+

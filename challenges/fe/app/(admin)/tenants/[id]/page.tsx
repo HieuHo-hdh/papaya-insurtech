@@ -2,8 +2,10 @@
 
 import { use, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Typography, Flex, Spin, message } from 'antd'
+import { Typography, Flex, Spin, Divider, message } from 'antd'
 import { TenantForm } from '@/components/tenants/TenantForm'
+import { VersionHistory } from '@/components/tenants/VersionHistory'
+import { ClaimTester } from '@/components/claims/ClaimTester'
 import { TenantConfigSchema } from '@/shared/schemas'
 import { tenantsApi, type TenantRow } from '@/lib/api/tenants'
 import { isSuccess } from '@/lib/api/client'
@@ -22,13 +24,17 @@ export default function TenantDetailPage({ params }: { params: Promise<{ id: str
   const activeConfig = tenant?.configs[0]?.config ?? null
   useTenantTheme(activeConfig)
 
-  useEffect(() => {
-    if (!hasToken()) { router.push('/login'); return }
+  const loadTenant = () => {
     tenantsApi.getById(id).then((res) => {
       if (isSuccess(res.code) && res.data) setTenant(res.data)
       else messageApi.error('Failed to load tenant')
       setFetching(false)
     })
+  }
+
+  useEffect(() => {
+    if (!hasToken()) { router.push('/login'); return }
+    loadTenant()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
 
@@ -55,16 +61,25 @@ export default function TenantDetailPage({ params }: { params: Promise<{ id: str
     <Flex vertical gap={16}>
       {contextHolder}
       <Typography.Title level={4}>Edit: {tenant?.name ?? '…'}</Typography.Title>
+
       {fetching ? (
         <Flex justify="center" style={{ padding: 48 }}>
           <Spin size="large" />
         </Flex>
       ) : (
-        <TenantForm
-          initialValues={activeConfig ? { name: tenant!.name, config: activeConfig } : undefined}
-          onSubmit={handleSubmit}
-          loading={loading}
-        />
+        <>
+          <TenantForm
+            initialValues={activeConfig ? { name: tenant!.name, config: activeConfig } : undefined}
+            onSubmit={handleSubmit}
+            loading={loading}
+          />
+
+          <Divider />
+          <VersionHistory tenantId={id} onRollback={loadTenant} />
+
+          <Divider />
+          {activeConfig && <ClaimTester tenantId={id} config={activeConfig} />}
+        </>
       )}
     </Flex>
   )

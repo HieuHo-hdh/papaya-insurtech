@@ -1,3 +1,19 @@
+# T003: Config Diff Page
+
+**Module:** M7 · admin-ui-tools
+**Story:** S3
+**Tags:** FE
+**Status:** done
+**Size:** M
+
+## Description
+Implement `app/(admin)/diff/page.tsx` — select two tenants, call the diff API, display a side-by-side table highlighting all differences.
+
+## Detail
+
+### `fe/app/(admin)/diff/page.tsx`
+
+```tsx
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -9,26 +25,6 @@ import { tenantsApi, type TenantRow } from '@/lib/api/tenants'
 import { diffApi } from '@/lib/api/diff'
 import { isSuccess } from '@/lib/api/client'
 import type { DiffEntry } from '@/shared/types'
-
-function DiffValue({ value, highlight }: { value: unknown; highlight: 'a' | 'b' }) {
-  if (value === undefined || value === null) {
-    return <Tag color="default">—</Tag>
-  }
-  if (typeof value === 'boolean') {
-    return <Tag color={value ? 'green' : 'red'}>{String(value)}</Tag>
-  }
-  if (typeof value === 'number') {
-    return <Tag color={highlight === 'a' ? 'blue' : 'purple'}>{value.toLocaleString()}</Tag>
-  }
-  if (Array.isArray(value) || typeof value === 'object') {
-    return (
-      <Typography.Text code style={{ fontSize: 11, wordBreak: 'break-all' }}>
-        {JSON.stringify(value)}
-      </Typography.Text>
-    )
-  }
-  return <Tag color={highlight === 'a' ? 'blue' : 'purple'}>{String(value)}</Tag>
-}
 
 export default function DiffPage() {
   const router = useRouter()
@@ -45,8 +41,7 @@ export default function DiffPage() {
     tenantsApi.list(1, 100).then((res) => {
       if (isSuccess(res.code) && res.data) setTenants(res.data.data)
     })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [router])
 
   const handleCompare = async () => {
     if (!tenantA || !tenantB) {
@@ -65,6 +60,7 @@ export default function DiffPage() {
   }
 
   const tenantOptions = tenants.map((t) => ({ label: t.name, value: t.id }))
+
   const nameA = tenants.find((t) => t.id === tenantA)?.name ?? 'Tenant A'
   const nameB = tenants.find((t) => t.id === tenantB)?.name ?? 'Tenant B'
 
@@ -96,7 +92,7 @@ export default function DiffPage() {
 
       <Card>
         <Flex gap={12} align="flex-end" wrap="wrap">
-          <Flex vertical gap={4}>
+          <Flex vertical gap={4} style={{ minWidth: 200 }}>
             <Typography.Text strong>Tenant A</Typography.Text>
             <Select
               options={tenantOptions}
@@ -106,7 +102,7 @@ export default function DiffPage() {
               style={{ width: 220 }}
             />
           </Flex>
-          <Flex vertical gap={4}>
+          <Flex vertical gap={4} style={{ minWidth: 200 }}>
             <Typography.Text strong>Tenant B</Typography.Text>
             <Select
               options={tenantOptions}
@@ -127,21 +123,17 @@ export default function DiffPage() {
         </Flex>
       </Card>
 
-      {loading && (
-        <Flex justify="center" style={{ padding: 48 }}>
-          <Spin size="large" />
-        </Flex>
-      )}
+      {loading && <Flex justify="center" style={{ padding: 48 }}><Spin size="large" /></Flex>}
 
       {!loading && compared && diffs.length === 0 && (
         <Empty description="No differences found — configs are identical" />
       )}
 
       {!loading && diffs.length > 0 && (
-        <Flex vertical gap={8}>
-          <Typography.Text type="secondary">
-            {diffs.length} difference{diffs.length !== 1 ? 's' : ''} found
-          </Typography.Text>
+        <>
+          <Flex align="center" gap={8}>
+            <Typography.Text type="secondary">{diffs.length} difference{diffs.length !== 1 ? 's' : ''} found</Typography.Text>
+          </Flex>
           <Table
             rowKey="path"
             columns={columns}
@@ -149,8 +141,71 @@ export default function DiffPage() {
             pagination={{ pageSize: 20, showTotal: (t) => `${t} diffs` }}
             size="small"
           />
-        </Flex>
+        </>
       )}
     </Flex>
   )
 }
+```
+
+### `DiffValue` helper component (in same file)
+
+```tsx
+function DiffValue({ value, highlight }: { value: unknown; highlight: 'a' | 'b' }) {
+  if (value === undefined) {
+    return <Tag color="default">—</Tag>
+  }
+  if (typeof value === 'boolean') {
+    return <Tag color={value ? 'green' : 'red'}>{String(value)}</Tag>
+  }
+  if (typeof value === 'number') {
+    return (
+      <Tag color={highlight === 'a' ? 'blue' : 'purple'}>
+        {value.toLocaleString()}
+      </Tag>
+    )
+  }
+  if (Array.isArray(value) || typeof value === 'object') {
+    return (
+      <Typography.Text code style={{ fontSize: 11, wordBreak: 'break-all' }}>
+        {JSON.stringify(value, null, 0)}
+      </Typography.Text>
+    )
+  }
+  return (
+    <Tag color={highlight === 'a' ? 'blue' : 'purple'}>
+      {String(value)}
+    </Tag>
+  )
+}
+```
+
+**Display rules:**
+- `undefined` (key missing in that tenant) → gray `—` Tag
+- Boolean → green/red Tag
+- Number → colored Tag with locale-formatted number
+- Array or object (nested diff) → inline JSON `code` block
+- String → colored Tag (blue for A, purple for B)
+
+**Same-tenant guard:** Compare button is disabled when `tenantA === tenantB`.
+
+## Expectation
+Selecting SafeGuard vs GovHealth and clicking Compare shows a table with ~15+ diff rows. Paths like `branding.companyName`, `approvalRules.autoApprovalThreshold`, `sla.perClaimType` appear with their respective values highlighted. Selecting same tenant twice shows the button disabled.
+
+## Acceptance Criteria
+- [ ] Two tenant Selects (populated from `tenantsApi.list`)
+- [ ] Compare button disabled when same tenant selected on both sides or either is empty
+- [ ] Calls `diffApi.compare` on button click
+- [ ] Results table shows path, valueA, valueB with type-appropriate rendering
+- [ ] `undefined` values shown as `—`
+- [ ] Zero diffs → `Empty` component with friendly message
+- [ ] Auth guard: redirect to `/login` if no token
+- [ ] No raw HTML for text
+
+## Dependencies
+- Depends on: T001 (`diffApi`), M6 T001 (`tenantsApi.list`)
+- Blocks: none
+
+## References
+- Architecture: Config Diff Response — `{ tenantA, tenantB, diffs: [{path, valueA, valueB}] }`
+- Standards: Ant Design Table, Select, Empty, Tag; `Typography.*` for text
