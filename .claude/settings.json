@@ -1,4 +1,11 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(npx *)",
+      "Bash(npm install*)",
+      "Bash(npm run *)"
+    ]
+  },
   "hooks": {
     "SessionStart": [
       {
@@ -15,7 +22,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "INPUT=$(cat); echo \"$INPUT\" | jq -r '\"----------\\nPrompted at: \" + ((now + 25200) | strftime(\"%d/%m/%Y - %H:%M:%S\")) + \" (GMT+7)\\nPrompt: \" + .prompt + \"\\n----------\"' >> \"./.claude/logs/prompts.txt\" 2>/dev/null || true"
+            "command": "jq -r '\"----------\\nPrompted at: \" + ((now + 25200) | strftime(\"%d/%m/%Y - %H:%M:%S\")) + \" (GMT+7)\\nPrompt: \" + (.prompt // \"\") + \"\\n----------\"' >> \"./.claude/logs/prompts.txt\" 2>/dev/null || true"
           }
         ]
       }

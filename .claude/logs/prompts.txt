@@ -121,3 +121,75 @@ AI Response Summary:
 - Estimated ~95% confidence once 5–10 are confirmed; ready to start M1+M2
 ----------
 
+AI Response Summary:
+- Audited all SA gaps after full clarification session — 8 remain
+- High priority: template variable set, diff response format, auth seeding
+- Medium priority: rollback behavior (new version vs flip flag), processClaim validation strictness, SLA timezone
+- Low priority: JWT expiry, deployment targets
+- Proposed defaults for all; asked to proceed with M2 while awaiting answers
+----------
+
+AI Response Summary:
+- Confirmed all 8 remaining gaps with user answers
+- Compiled full SA sign-off summary covering: data model, TenantConfig JSONB shape, processClaim contract, all API endpoints, diff/error/pagination shapes, template variables, rollback behavior, auth, validation rules, deployment targets
+- Awaiting user confirmation before starting M2 (database schema)
+----------
+
+AI Response Summary:
+- Confirmed dayjs for all date/time operations (SLA, validation, formatting)
+- Redesigned CustomField: added type system (text, text_area, number, date_time, boolean, select) with type-specific constraints (maxLength, min, max, options)
+- claimData.customFields stays Record<string,string>; BE validates and casts per field type
+- Validation errors collected and returned as 400 with field-level details
+- customFieldsRequired in processClaim result now returns full CustomField definition
+- Deleted preview-claim endpoint (process-claim is already pure computation, no persist)
+----------
+
+AI Response Summary:
+- Created shared/types.ts with all confirmed types including updated CustomField (type system), DiffEntry/DiffResponse, ProcessClaimResult with approvalTiers[] plural and slaDeadline as ISO string
+- Created shared/schemas.ts with Zod schemas for all entities + validateCustomFieldValues() function (validates text/text_area maxLength, number min/max, date_time via dayjs, boolean, select options)
+- Copied both files into be/src/shared/
+- Drew database ERD: users, tenants (soft-delete), tenant_configs (JSONB config, version per tenant, is_active flag)
+- Noted key constraints: unique (tenant_id, version), single is_active per tenant, deleted_at IS NULL guard
+----------
+
+AI Response Summary:
+- Generated clean Mermaid erDiagram for users, tenants, tenant_configs with relationships
+----------
+
+AI Response Summary:
+- Recommended creating planning/architecture.md for SA sign-off (keeps CLAUDE.md concise)
+- Proposed adding a reference line in CLAUDE.md pointing to the new file
+- Awaiting user confirmation before creating
+----------
+
+AI Response Summary:
+- Created planning/architecture.md with full SA sign-off (data model, JSONB shape, processClaim contract, all API endpoints, response shapes, validation rules, rollback behavior)
+- Added Architecture section reference at top of CLAUDE.md pointing to planning/architecture.md
+----------
+
+
+AI Response Summary:
+- TL Review: flagged antd 6 (not 5) and zod 4 (not 3) installed — updated modules.md accordingly; flagged missing BE src files (app.ts, index.ts, routes, middleware not yet created); flagged preview-claim still in old modules.md; missing auth module
+- SA/BA: rewrote modules.md — added M3 (auth-api), expanded M1 to 13 stories, renamed M3→M4, M4→M5, M5→M6, M6→M7, M7→M8, M8→M9; updated M7-S9 custom fields for type system; fixed M7-S13 useTenantTheme; removed preview-claim
+- Created planning/coding-standards.md — BE folder structure, controller/service/engine patterns, AppError, validate middleware, dayjs config; FE Ant Design rules (no raw div/span for text), Tailwind usage, naming conventions
+- Created fe/lib/theme.ts — buildTheme() maps branding colors to Ant Design tokens
+- Created fe/components/providers/AntdProvider.tsx — ConfigProvider + ThemeContext with setPrimaryColor/setSecondaryColor/resetTheme
+- Created fe/lib/api/client.ts — fetch wrapper with isSuccess/isUnauthorized helpers, Bearer token injection
+- Updated fe/app/layout.tsx — wrapped with AntdProvider, removed Geist font, cleaned metadata
+- Copied shared types/schemas to fe/shared/; ran npm install in be/
+----------
+
+AI Response Summary:
+- Diagnosed UserPromptSubmit hook failure: echo "$INPUT" was shell-expanding special chars ({{vars}}, backticks, $signs) from architecture discussion, corrupting JSON before jq parsed it; 2>/dev/null silently suppressed errors
+- Fixed: removed INPUT=$(cat); echo pattern, jq now reads stdin directly
+- Verified fix handles $special, {{vars}}, backticks correctly
+----------
+
+----------
+Prompted at: 21/06/2026 - 13:21:05 (GMT+7)
+Prompt: test log
+----------
+AI Response Summary:
+- Confirmed hook fix working: "test log" prompt captured correctly at 13:21:05 GMT+7
+----------
+
