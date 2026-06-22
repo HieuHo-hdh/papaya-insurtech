@@ -6,8 +6,8 @@ const prisma = new PrismaClient()
 
 const ACTIVE_CONFIG = { configs: { where: { isActive: true }, take: 1 } } as const
 
-export const list = async (page: number, pageSize: number) => {
-  const where = { deletedAt: null }
+export const list = async (page: number, pageSize: number, showDeleted = false) => {
+  const where = showDeleted ? {} : { deletedAt: null }
   const [tenants, total] = await Promise.all([
     prisma.tenant.findMany({
       where,

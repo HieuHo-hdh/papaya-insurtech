@@ -14,6 +14,7 @@ export interface TenantRow {
   id: string
   name: string
   createdAt: string
+  deletedAt?: string | null
   configs: { config: TenantConfig; version: number; isActive: boolean; createdAt: string }[]
 }
 
@@ -25,8 +26,8 @@ export interface PaginatedTenants {
 }
 
 export const tenantsApi = {
-  list: (page = 1, pageSize = 20) =>
-    apiClient.get<PaginatedTenants>(`/tenants?page=${page}&pageSize=${pageSize}`),
+  list: (page = 1, pageSize = 20, showDeleted = false) =>
+    apiClient.get<PaginatedTenants>(`/tenants?page=${page}&pageSize=${pageSize}&showDeleted=${showDeleted}`),
 
   getById: (id: string) => apiClient.get<TenantRow>(`/tenants/${id}`),
 

@@ -14,6 +14,7 @@ import {
   Steps,
   Row,
   Col,
+  Space,
 } from 'antd'
 import { SwapOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
@@ -21,7 +22,54 @@ import { hasToken } from '@/lib/api/auth'
 import { tenantsApi, type TenantRow } from '@/lib/api/tenants'
 import { diffApi } from '@/lib/api/diff'
 import { isSuccess } from '@/lib/api/client'
-import type { DiffEntry } from '@/shared/types'
+import type { DiffEntry, DiffResponse, ClaimType } from '@/shared/types'
+
+const CLAIM_TYPE_COLORS: Record<ClaimType, string> = {
+  OUTPATIENT: 'blue',
+  INPATIENT: 'cyan',
+  DENTAL: 'green',
+  MATERNITY: 'pink',
+  OPTICAL: 'orange',
+}
+
+function ColorSwatch({ hex, label }: { hex?: string; label: string }) {
+  if (!hex) return null
+  return (
+    <Space size={6}>
+      <Typography.Text type="secondary" style={{ fontSize: 12 }}>{label}</Typography.Text>
+      <div style={{ width: 14, height: 14, borderRadius: 3, background: hex, border: '1px solid #d9d9d9', display: 'inline-block', verticalAlign: 'middle' }} />
+      <Typography.Text style={{ fontSize: 12 }}>{hex}</Typography.Text>
+    </Space>
+  )
+}
+
+function TenantSummaryCard({ tenant, side }: { tenant: TenantRow; side: 'a' | 'b' }) {
+  const borderColor = side === 'a' ? '#3B82F6' : '#14B8A6'
+  const activeConfig = tenant.configs[0]?.config
+
+  return (
+    <Card size="small" style={{ borderColor, borderWidth: 2 }}>
+      {!activeConfig ? (
+        <Typography.Text type="secondary">No active config</Typography.Text>
+      ) : (
+        <Flex vertical gap={8}>
+          <Typography.Text strong>{activeConfig.branding?.companyName ?? tenant.name}</Typography.Text>
+          <Flex vertical gap={4}>
+            <ColorSwatch hex={activeConfig.branding?.primaryColor} label="Primary" />
+            <ColorSwatch hex={activeConfig.branding?.secondaryColor} label="Secondary" />
+          </Flex>
+          <Flex wrap="wrap" gap={4}>
+            {Object.entries(activeConfig.claimTypes ?? {})
+              .filter(([, v]) => v?.enabled)
+              .map(([ct]) => (
+                <Tag key={ct} color={CLAIM_TYPE_COLORS[ct as ClaimType]}>{ct}</Tag>
+              ))}
+          </Flex>
+        </Flex>
+      )}
+    </Card>
+  )
+}
 
 function DiffValue({ value, highlight }: { value: unknown; highlight: 'a' | 'b' }) {
   if (value === undefined || value === null) {
@@ -74,7 +122,7 @@ export default function DiffPage() {
   const [tenants, setTenants] = useState<TenantRow[]>([])
   const [tenantA, setTenantA] = useState<string | undefined>()
   const [tenantB, setTenantB] = useState<string | undefined>()
-  const [diffs, setDiffs] = useState<DiffEntry[]>([])
+  const [diffResult, setDiffResult] = useState<import('@/shared/types').DiffResponse | null>(null)
   const [loading, setLoading] = useState(false)
   const [compared, setCompared] = useState(false)
   const [filter, setFilter] = useState<string[]>([])
@@ -99,7 +147,7 @@ export default function DiffPage() {
     setFilter([])
     const res = await diffApi.compare(tenantA, tenantB)
     if (isSuccess(res.code) && res.data) {
-      setDiffs(res.data.diffs)
+      setDiffResult(res.data)
       setCompared(true)
     } else {
       messageApi.error(res.message || 'Diff failed')
@@ -108,12 +156,18 @@ export default function DiffPage() {
   }
 
   const tenantOptions = tenants.map((t) => ({ label: t.name, value: t.id }))
-  const nameA = tenants.find((t) => t.id === tenantA)?.name ?? 'Tenant A'
-  const nameB = tenants.find((t) => t.id === tenantB)?.name ?? 'Tenant B'
+  const optionsForA = tenantOptions.filter((o) => o.value !== tenantB)
+  const optionsForB = tenantOptions.filter((o) => o.value !== tenantA)
 
-  const categories = [...new Set(diffs.map((d) => d.path.split('.')[0]))]
+  const diffs = diffResult?.diffs ?? []
+  const nameA = diffResult?.tenantA.name ?? tenants.find((t) => t.id === tenantA)?.name ?? 'Tenant A'
+  const nameB = diffResult?.tenantB.name ?? tenants.find((t) => t.id === tenantB)?.name ?? 'Tenant B'
+  const rowA = tenants.find((t) => t.id === tenantA)
+  const rowB = tenants.find((t) => t.id === tenantB)
+
+  const categories = [...new Set(diffs.map((d) => d.section))]
   const filtered =
-    filter.length > 0 ? diffs.filter((d) => filter.includes(d.path.split('.')[0])) : diffs
+    filter.length > 0 ? diffs.filter((d) => filter.includes(d.section)) : diffs
 
   const stepsCurrentStep = tenantA && tenantB && compared ? 2 : tenantA || tenantB ? 1 : 0
 
@@ -163,7 +217,7 @@ export default function DiffPage() {
             <Flex vertical gap={4}>
               <Typography.Text strong>Tenant A</Typography.Text>
               <Select
-                options={tenantOptions}
+                options={optionsForA}
                 value={tenantA}
                 onChange={setTenantA}
                 placeholder="Select tenant…"
@@ -178,7 +232,7 @@ export default function DiffPage() {
             <Flex vertical gap={4}>
               <Typography.Text strong>Tenant B</Typography.Text>
               <Select
-                options={tenantOptions}
+                options={optionsForB}
                 value={tenantB}
                 onChange={setTenantB}
                 placeholder="Select tenant…"
@@ -199,6 +253,17 @@ export default function DiffPage() {
           </Col>
         </Row>
       </Card>
+
+      {tenantA && tenantB && rowA && rowB && (
+        <Row gutter={16}>
+          <Col span={12}>
+            <TenantSummaryCard tenant={rowA} side="a" />
+          </Col>
+          <Col span={12}>
+            <TenantSummaryCard tenant={rowB} side="b" />
+          </Col>
+        </Row>
+      )}
 
       {loading && (
         <Flex justify="center" style={{ padding: 48 }}>

@@ -32,6 +32,7 @@ import {
 import { claimsApi } from '@/lib/api/claims'
 import { isSuccess } from '@/lib/api/client'
 import type { TenantConfig, ProcessClaimResult, ClaimType, CustomField } from '@/shared/types'
+import { EVENT_LABELS, CHANNEL_LABELS } from '@/shared/constants'
 import dayjs from 'dayjs'
 
 const CLAIM_TYPE_OPTIONS: { label: string; value: ClaimType }[] = [
@@ -304,11 +305,11 @@ function ClaimResult({ result }: { result: ProcessClaimResult }) {
             <List.Item style={{ padding: '4px 0', border: 'none' }}>
               <Flex align="center" gap={8} wrap="wrap">
                 <Tag color="geekblue" style={{ margin: 0 }}>
-                  {n.event}
+                  {EVENT_LABELS[n.event as keyof typeof EVENT_LABELS] ?? n.event}
                 </Tag>
                 {n.channels.map((ch) => (
                   <Tag key={ch} color="blue" style={{ margin: 0 }}>
-                    {ch}
+                    {CHANNEL_LABELS[ch as keyof typeof CHANNEL_LABELS] ?? ch}
                   </Tag>
                 ))}
               </Flex>

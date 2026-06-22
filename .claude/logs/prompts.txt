@@ -516,3 +516,217 @@ AI Response Summary:
 - Task marked dev-done
 ----------
 
+----------
+Prompted at: 22/06/2026 - 22:35:33 (GMT+7)
+Prompt: now I want to refactor, update validation. BA please break tasks for tenants, versions, diffpage
+----------
+AI Response Summary:
+- User asked whether .claude/commands/ files should be converted to skills
+- Confirmed that .claude/commands/ files ARE already skills in Claude Code — automatically exposed as slash commands
+- All 10 role commands (fe, be, sa, ba, tl, qa-api, qa-ui, orchestra, new-module, ba-tasks) already appear in system-reminder as available skills
+- No migration or changes needed
+----------
+
+AI Response Summary:
+- Created M11 · refactor-validation module with 6 tasks
+- T001: FE · Fix TenantDetailPage (remove debug code, restore Zod validation)
+- T002: FE · TenantForm external form instance prop + _claimTypesError sentinel
+- T003: BE · Fix UpdateTenantSchema for partial claimTypes under Zod v4
+- T004: BE · Diff service validation (tenant existence + same-tenant guard)
+- T005: FE · VersionHistory config preview modal
+- T006: FE · DiffPage tenant summary cards + option filtering
+----------
+
+----------
+Prompted at: 22/06/2026 - 23:24:50 (GMT+7)
+Prompt: SA, techlead can you discuss with me for these upcoming changes?
+- on BE sides, I want to adjust schema (required rules), so I can update, create tenants, verions,... expectedly.
+
+ - on FE sides, the validation should be antd validation (I want seperate fields) on FE submit. After the validation works correctly on UI, format the data input before calling API.
+Also, add skills or rules for effective uses next time. I will continue on other schemas afterwards
+
+First,
+When creating,
+companyName: required,
+logoUrl: optional,
+primaryColor: optional,
+secondaryColor: optional,
+
+  claimTypes: do not need to include all enum, at least 1 item
+  
+  for each claim
+  enabled: optional (default false ),
+  requiredDocuments: required, at least 1 item,
+  optionalDocuments: optional,
+
+
+  ApprovalTierSchema keep at current
+
+  autoApprovalThreshold: required, can be = 0
+  approvalTiers: required, must have a least 1 tier (isPrimary: true for approving other tiers), > autoApprovalThreshold
+
+  NotificationConfigSchema must includes (claim_submitted, approved, rejected, payment_sent)
+  channels is required, must include at least 1 item
+  template is optional
+
+  timezone: required
+  weekdays: required, min 1, default Mon -> Fri
+  holidays: optional,
+  perClaimType: must match with claimTypes from payload (can add validation rule here)
+  escalationContacts: required, array
+
+  CustomFields : optional
+  if has item
+    name: required,
+  label: required,
+  required: required,
+  type: CustomFieldTypeEnum required ,
+
+
+  for updating, apart from id, just update fields in payload (no need to required all fields), if user tends to update required fields inccorrectly. for e.g: CustomFields: [{ name: "A" }] => Throw required rules here
+----------
+AI Response Summary:
+- SA discussion on BE schema validation rules and FE validation strategy
+- Identified 3 open decisions: notifications (all 4 required vs optional), perClaimType matching semantics, PUT vs PATCH for update
+- Proposed CreateTenantSchema and UpdateTenantConfigSchema contracts with clear required/optional rules
+- Recommended FE validation via Ant Design form rules only (remove Zod from handleSubmit)
+- Listed 7 cross-field validation points requiring .superRefine()
+----------
+
+----------
+Prompted at: 22/06/2026 - 23:34:56 (GMT+7)
+Prompt: 
+1. 
+2a agree
+2b option B
+2. keep PUT
+3. Agree, add validation for UI too (even for complex rules)
+logoUrl 
+approvalTiers
+customFields
+notifications
+weekdays: set default on UI
+…
+4. Yes please
+----------
+AI Response Summary:
+- Updated coding-standards.md rule 3: FE validation via Ant Design Form.Item rules only, no Zod on submit; documented sentinel pattern for cross-field rules
+- BE schemas: BrandingSchema (primaryColor/secondaryColor optional), ClaimTypeConfigSchema (enabled defaults false, requiredDocuments required when enabled), SlaConfigSchema (holidays/escalationContacts default []), TenantConfigSchema (partial claimTypes record, perClaimType cross-field superRefine), notifications Option B
+- FE schemas: synced with BE changes
+- TenantForm: added external form prop fallback, weekdays Mon-Fri default, logoUrl URL validator, _vClaimTypes sentinel, _vIsPrimary sentinel, greaterThan>threshold validator, _vReqDocs per claim type, options/min-max validators for customFields
+- NewTenantPage + TenantDetailPage: removed TenantConfigSchema import and safeParse from handleSubmit
+----------
+
+----------
+Prompted at: 22/06/2026 - 23:50:11 (GMT+7)
+Prompt: in @source/fe/pages/tenants/NewTenantPage.tsx, there are some UX issues needed to fix:
+- required docs, when add doc + click submit, doc can not be empty string
+----------
+AI Response Summary:
+- Fixed DocList in TenantForm: each doc input now has required + whitespace: true rule so empty strings are caught on submit with inline error "Document name cannot be empty"
+----------
+
+----------
+Prompted at: 22/06/2026 - 23:56:41 (GMT+7)
+Prompt: <Form.Item
+              name={['_vReqDocs', claimType]}
+              dependencies={[['claimTypes', claimType, 'requiredDocuments']]}
+              rules={[{
+                validator: async () => {
+                  const docs = (form.getFieldValue(['claimTypes', claimType, 'requiredDocuments']) as string[] | undefined) ?? []
+                  if (docs.filter((d) => d?.trim()).length === 0)
+                    throw new Error('At least one required document needed')
+                },
+              }]}
+              style={{ marginBottom: 0 }}
+            >
+            </Form.Item> in @source/fe/components/tenants/TenantForm.tsx , it takes some space, can we adjust to still shows error message, but not show space?
+----------
+[2026-06-22 23:58:22 (GMT+7)] Session started: 74c3a855-5a1c-4808-a9ec-c05b92f42e9f
+AI Response Summary:
+- Fixed `_vReqDocs` sentinel spacing by adding `<input type="hidden" />` as child element
+- Sentinel now matches pattern used by `_vClaimTypes` and `_vIsPrimary` — zero visual space when valid, error message still appears when invalid
+----------
+
+----------
+Prompted at: 23/06/2026 - 00:29:11 (GMT+7)
+Prompt: BA update folder in M11, remove all current tasks, also update T001 for previous change related to tenants schema, update rules and so on
+----------
+AI Response Summary:
+- Deleted all 6 old M11 task folders (T001–T006)
+- Created new T001-update-validation-schemas covering all BE+FE schema changes implemented this session
+- T001 marked status: done; documents ClaimTypeConfigSchema, TenantConfigSchema, sentinel pattern, and page handleSubmit simplifications
+- Updated M11/status.md to reflect single consolidated task and in-progress module status
+----------
+
+----------
+Prompted at: 23/06/2026 - 00:32:14 (GMT+7)
+Prompt: SA please check with BA for remaining schemas and UI
+----------
+AI Response Summary:
+- SA audited all remaining surfaces: diff.service missing tenant guard, VersionHistory missing preview, DiffPage missing summary cards + cross-exclude
+- No API contract changes needed — all gaps solvable with existing endpoints and local state
+- BA generated T002 (BE diff guard, S), T003 (FE version preview drawer, M), T004 (FE diff summary cards, M)
+- Updated M11/status.md with all 4 tasks (T001 done, T002–T004 pending)
+----------
+
+----------
+Prompted at: 23/06/2026 - 00:36:40 (GMT+7)
+Prompt: SA read again T002, asks me if something you do not understand
+----------
+AI Response Summary:
+- SA reviewed T002 in full — one clarifying question raised: sequential vs parallel for requireTenant guards
+- Recommended sequential (deterministic error priority, negligible latency cost)
+- All other T002 details (requireTenant shape, error messages, no shared utility) confirmed unambiguous
+----------
+
+----------
+Prompted at: 23/06/2026 - 00:38:07 (GMT+7)
+Prompt: sequential, go ahead implement T002
+----------
+AI Response Summary:
+- Implemented T002: added local requireTenant helper to diff.service.ts (mirrors versions.service.ts pattern)
+- Sequential awaits: requireTenant(idA) then requireTenant(idB) before Promise.all config query
+- T002 marked done in task.md and status.md
+----------
+
+----------
+Prompted at: 23/06/2026 - 00:38:49 (GMT+7)
+Prompt: implement T003
+----------
+AI Response Summary:
+- Implemented T003: VersionHistory config preview drawer
+- Added ConfigPreview component with 5 sections: Branding, Claim Types, Approval Rules, SLA, Custom Fields
+- Eye icon button on every row (active + non-active), per-row loading state via previewLoading string ID
+- Drawer uses destroyOnHidden, closes by setting previewVersion to null
+- T003 marked done in task.md and status.md
+----------
+
+----------
+AI Response Summary:
+- Implemented T004: DiffPage summary cards + cross-exclude dropdowns
+- Added TenantSummaryCard component (company name, color swatches, enabled claim type tags)
+- Split tenantOptions into optionsForA/optionsForB to cross-exclude selected tenant
+- Summary cards render between select card and diff results, only when both tenants selected
+- T004 marked done in task.md and status.md; M11 all tasks complete
+----------
+
+AI Response Summary:
+- Read client.ts (no 401 auto-redirect), tenants.service.ts (list filters deletedAt:null), TenantForm SLA section (renders all 5 claim types always)
+- SA identified 3 options for BE diff improvement: A (tenant identity), B (section field), C (both)
+- Recommended Option C; awaiting user confirmation before BA generates M12 tasks
+----------
+
+AI Response Summary:
+- Removed dynamic tenant theme: dropped useTenantTheme call from TenantDetailPage
+- Simplified AntdProvider to static theme (removed ThemeContext, setPrimaryColor, setSecondaryColor, resetTheme)
+- Simplified buildTheme() to use fixed DEFAULT_PRIMARY/SECONDARY constants — no dynamic params
+- useTenantTheme.ts hook file left on disk but no longer used
+----------
+
+AI Response Summary:
+- Fixed SLA perClaimType reactivity: Form.useWatch was passed an array-of-arrays (invalid NamePath), so it always returned undefined
+- Replaced with Form.useWatch('claimTypes', form) watching the entire claimTypes subtree
+- enabledClaimTypes now correctly filters by ct.enabled, making perClaimType inputs reactive to toggle changes
+----------
+
