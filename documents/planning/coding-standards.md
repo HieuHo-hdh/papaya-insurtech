@@ -151,7 +151,7 @@ fe/
     DiffPage.tsx
   components/
     providers/
-      AntdProvider.tsx    ConfigProvider + App + theme context
+      AntdProvider.tsx    ConfigProvider + App (static theme — no dynamic tenant theming)
     layout/
       AdminShell.tsx      sidebar + header shell, uses <Outlet />
     tenants/              tenant-specific components
@@ -168,7 +168,6 @@ fe/
     theme.ts              token builder from TenantConfig branding
     utils.ts
   hooks/
-    useTenantTheme.ts     reads active tenant branding, updates theme
   index.html              Vite HTML entry
   vite.config.ts          Vite + @tailwindcss/vite + @ alias
   vite-env.d.ts           /// <reference types="vite/client" />
@@ -257,7 +256,7 @@ const handleSubmit = async (name: string, config: TenantConfig) => {
 
 Sentinel naming: use `_v` prefix (`_vClaimTypes`, `_vIsPrimary`, etc.) to avoid collision with real fields. `assembleConfig` must only pick named domain keys — never spread `values`.
 
-**4. All API calls go through `lib/api/client.ts`, never fetch directly.**
+**4. All API calls go through `lib/api/client.ts`, never fetch directly.** The client auto-redirects to `/login` and clears localStorage on HTTP 401.
 
 **5. Loading/error states — always use Ant Design Spin, Result, Alert, message.**
 
@@ -265,11 +264,7 @@ Sentinel naming: use `_v` prefix (`_vClaimTypes`, `_vIsPrimary`, etc.) to avoid 
 
 ## Theme customization
 
-Ant Design 6 uses `ConfigProvider` with `theme.token`. Primary and secondary colors from tenant branding are mapped to design tokens.
-
-The app has two modes:
-- **Global theme** (default): neutral admin palette
-- **Tenant preview theme**: when viewing/editing a tenant, ConfigProvider updates to that tenant's `branding.primaryColor` + `branding.secondaryColor`
+Ant Design 6 uses `ConfigProvider` with `theme.token`. The app uses a single fixed palette defined in `fe/lib/theme.ts`. There is no dynamic per-tenant theme — tenant branding colors (primaryColor, secondaryColor) are stored in config but do not affect the admin shell appearance.
 
 See `fe/lib/theme.ts` and `fe/components/providers/AntdProvider.tsx`.
 
@@ -281,7 +276,7 @@ See `fe/lib/theme.ts` and `fe/components/providers/AntdProvider.tsx`.
 |------|-----------|---------|
 | Files | kebab-case | `tenant-list.tsx` |
 | Components | PascalCase | `TenantList` |
-| Hooks | camelCase + use prefix | `useTenantTheme` |
+| Hooks | camelCase + use prefix | `useTenantsApi` |
 | BE services/utils | camelCase | `tenantService` |
 | Constants | UPPER_SNAKE | `DEFAULT_PAGE_SIZE` |
 | Types/interfaces | PascalCase | `TenantConfig` |
