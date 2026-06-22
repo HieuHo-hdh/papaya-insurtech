@@ -219,13 +219,43 @@ Route tree lives in `src/App.tsx`. `AdminShell` renders `<Outlet />` — no `chi
 <Typography.Title level={4}>Title</Typography.Title>
 ```
 
-**3. All forms use Ant Design Form + Zod validation together.**
-```tsx
-const schema = TenantConfigSchema
-const form = Form.useForm()
+**3. FE form validation uses Ant Design `Form.Item rules` exclusively — Zod is BE-only.**
 
-// validate on submit via zod, show errors via form.setFields
+Rules:
+- All validation (including complex cross-field rules) is expressed as `Form.Item rules` props
+- `handleSubmit` / `onFinish` receives already-validated values — **never call `safeParse` here**
+- After validation, call `assembleConfig(values)` to format data, then POST/PUT to API
+- API `400` responses are surfaced via `messageApi.error` only (not `form.setFields`)
+- Cross-field rules (e.g. "at least 1 tier isPrimary") use a hidden sentinel `Form.Item` with a custom async validator and `dependencies` pointing to the watched fields
+
+```tsx
+// Sentinel pattern for cross-field rules
+<Form.Item
+  name="_isPrimaryValidator"
+  dependencies={[['approvalRules', 'approvalTiers']]}
+  rules={[{
+    validator: async () => {
+      const tiers = form.getFieldValue(['approvalRules', 'approvalTiers'])
+      if (!tiers?.some((t) => t?.isPrimary))
+        throw new Error('At least one tier must be marked as primary')
+    }
+  }]}
+  style={{ marginBottom: 0 }}
+>
+  <input type="hidden" />
+</Form.Item>
+
+// handleSubmit — no Zod
+const handleSubmit = async (name: string, config: TenantConfig) => {
+  setLoading(true)
+  const res = await tenantsApi.create(name, config)
+  if (isSuccess(res.code) && res.data) { /* success */ }
+  else messageApi.error(res.message || 'Failed')
+  setLoading(false)
+}
 ```
+
+Sentinel naming: use `_v` prefix (`_vClaimTypes`, `_vIsPrimary`, etc.) to avoid collision with real fields. `assembleConfig` must only pick named domain keys — never spread `values`.
 
 **4. All API calls go through `lib/api/client.ts`, never fetch directly.**
 

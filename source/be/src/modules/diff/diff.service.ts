@@ -1,13 +1,28 @@
 import { PrismaClient } from '@prisma/client'
-import type { TenantConfig, DiffEntry, DiffResponse } from '@/shared/types'
+import type { TenantConfig, DiffEntry, DiffResponse, ConfigSection } from '@/shared/types'
 import { AppError } from '@/utils/AppError'
 
 const prisma = new PrismaClient()
 
+const requireTenant = async (tenantId: string) => {
+  const tenant = await prisma.tenant.findFirst({ where: { id: tenantId, deletedAt: null } })
+  if (!tenant) throw new AppError(404, 'Tenant not found')
+  return tenant
+}
+
 export const diffConfigs = async (idA: string, idB: string): Promise<DiffResponse> => {
+  await requireTenant(idA)
+  await requireTenant(idB)
+
   const [rowA, rowB] = await Promise.all([
-    prisma.tenantConfig.findFirst({ where: { tenantId: idA, isActive: true } }),
-    prisma.tenantConfig.findFirst({ where: { tenantId: idB, isActive: true } }),
+    prisma.tenantConfig.findFirst({
+      where: { tenantId: idA, isActive: true },
+      include: { tenant: true },
+    }),
+    prisma.tenantConfig.findFirst({
+      where: { tenantId: idB, isActive: true },
+      include: { tenant: true },
+    }),
   ])
   if (!rowA) throw new AppError(404, `No active config for tenant ${idA}`)
   if (!rowB) throw new AppError(404, `No active config for tenant ${idB}`)
@@ -16,18 +31,19 @@ export const diffConfigs = async (idA: string, idB: string): Promise<DiffRespons
   const configB = rowB.config as unknown as TenantConfig
 
   return {
-    tenantA: configA,
-    tenantB: configB,
+    tenantA: { id: idA, name: rowA.tenant.name, config: configA },
+    tenantB: { id: idB, name: rowB.tenant.name, config: configB },
     diffs: flatDiff(configA, configB),
   }
 }
 
-function flatDiff(a: unknown, b: unknown, prefix = ''): DiffEntry[] {
+function flatDiff(a: unknown, b: unknown, prefix = '', section = ''): DiffEntry[] {
   const diffs: DiffEntry[] = []
+  const currentSection = (section || prefix) as ConfigSection
 
   if (Array.isArray(a) || Array.isArray(b)) {
     if (JSON.stringify(a) !== JSON.stringify(b)) {
-      diffs.push({ path: prefix, valueA: a, valueB: b })
+      diffs.push({ section: currentSection, path: prefix, valueA: a, valueB: b })
     }
     return diffs
   }
@@ -36,13 +52,14 @@ function flatDiff(a: unknown, b: unknown, prefix = ''): DiffEntry[] {
     const keys = new Set([...Object.keys(a), ...Object.keys(b)])
     for (const key of keys) {
       const childPath = prefix ? `${prefix}.${key}` : key
-      diffs.push(...flatDiff(a[key], b[key], childPath))
+      const childSection = section || key
+      diffs.push(...flatDiff(a[key], b[key], childPath, childSection))
     }
     return diffs
   }
 
   if (a !== b) {
-    diffs.push({ path: prefix, valueA: a, valueB: b })
+    diffs.push({ section: currentSection, path: prefix, valueA: a, valueB: b })
   }
   return diffs
 }

@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { Typography, Flex, Button, message, Divider } from 'antd'
 import { ArrowLeftOutlined } from '@ant-design/icons'
 import { TenantForm } from '@/components/tenants/TenantForm'
-import { TenantConfigSchema } from '@/shared/schemas'
 import { tenantsApi } from '@/lib/api/tenants'
 import { isSuccess } from '@/lib/api/client'
 import { hasToken } from '@/lib/api/auth'
@@ -22,15 +21,8 @@ export default function NewTenantPage() {
   }, [navigate])
 
   const handleSubmit = async (name: string, config: TenantConfig) => {
-    const parsed = TenantConfigSchema.safeParse(config)
-    if (!parsed.success) {
-      const msgs = parsed.error.issues.map((i) => i.message).join('; ')
-      messageApi.error(`Validation failed: ${msgs}`)
-      return
-    }
-
     setLoading(true)
-    const res = await tenantsApi.create(name, parsed.data)
+    const res = await tenantsApi.create(name, config)
     if (isSuccess(res.code) && res.data) {
       dispatch(addTenant(res.data))
       messageApi.success('Tenant created')

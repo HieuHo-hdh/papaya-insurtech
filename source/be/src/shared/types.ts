@@ -96,14 +96,17 @@ export interface PaginatedResponse<T> {
   pageSize: number
 }
 
+export type ConfigSection = 'branding' | 'claimTypes' | 'approvalRules' | 'notifications' | 'sla' | 'customFields'
+
 export interface DiffEntry {
+  section: ConfigSection
   path: string
   valueA: unknown
   valueB: unknown
 }
 
 export interface DiffResponse {
-  tenantA: TenantConfig
-  tenantB: TenantConfig
+  tenantA: { id: string; name: string; config: TenantConfig }
+  tenantB: { id: string; name: string; config: TenantConfig }
   diffs: DiffEntry[]
 }

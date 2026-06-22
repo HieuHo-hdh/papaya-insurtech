@@ -12,11 +12,9 @@ import {
 import { TenantForm } from '@/components/tenants/TenantForm'
 import { VersionHistory } from '@/components/tenants/VersionHistory'
 import { ClaimTester } from '@/components/claims/ClaimTester'
-import { TenantConfigSchema } from '@/shared/schemas'
 import { tenantsApi, type TenantRow } from '@/lib/api/tenants'
 import { isSuccess } from '@/lib/api/client'
 import { hasToken } from '@/lib/api/auth'
-import { useTenantTheme } from '@/hooks/useTenantTheme'
 import type { TenantConfig } from '@/shared/types'
 
 export default function TenantDetailPage() {
@@ -29,7 +27,6 @@ export default function TenantDetailPage() {
   const [fetching, setFetching] = useState(true)
 
   const activeConfig = tenant?.configs[0]?.config ?? null
-  useTenantTheme(activeConfig)
 
   const loadTenant = () => {
     tenantsApi.getById(id).then((res) => {
@@ -48,16 +45,9 @@ export default function TenantDetailPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
 
-  const handleSubmit = async (name: string, config: TenantConfig) => {
-    const parsed = TenantConfigSchema.safeParse(config)
-    if (!parsed.success) {
-      const msgs = parsed.error.issues.map((i) => i.message).join('; ')
-      messageApi.error(`Validation failed: ${msgs}`)
-      return
-    }
-
+  const handleSubmit = async (_name: string, config: TenantConfig) => {
     setLoading(true)
-    const res = await tenantsApi.update(id, parsed.data)
+    const res = await tenantsApi.update(id, config)
     if (isSuccess(res.code) && res.data) {
       dispatch(updateTenantInList(res.data))
       messageApi.success('Config saved as new version')

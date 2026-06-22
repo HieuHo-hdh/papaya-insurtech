@@ -5,7 +5,8 @@ import { success, paginated } from '@/utils/response'
 export const list = async (req: Request, res: Response): Promise<void> => {
   const page = Math.max(1, Number(req.query.page) || 1)
   const pageSize = Math.max(1, Number(req.query.pageSize) || 20)
-  const result = await tenantService.list(page, pageSize)
+  const showDeleted = req.query.showDeleted === 'true'
+  const result = await tenantService.list(page, pageSize, showDeleted)
   res.json(paginated(result.tenants, result.total, result.page, result.pageSize))
 }
 

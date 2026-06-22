@@ -42,11 +42,9 @@ async function seedSafeguard() {
       secondaryColor: '#4a90d9',
     },
     claimTypes: {
-      OUTPATIENT: { enabled: true,  requiredDocuments: ['Medical Report', 'Receipt'],                            optionalDocuments: ['Referral Letter'] },
-      INPATIENT:  { enabled: true,  requiredDocuments: ['Admission Form', 'Discharge Summary', 'Receipt'],       optionalDocuments: ['Lab Results']     },
-      DENTAL:     { enabled: true,  requiredDocuments: ['Dental Report', 'Receipt'],                             optionalDocuments: []                  },
-      MATERNITY:  { enabled: false, requiredDocuments: [],                                                       optionalDocuments: []                  },
-      OPTICAL:    { enabled: false, requiredDocuments: [],                                                       optionalDocuments: []                  },
+      OUTPATIENT: { enabled: true, requiredDocuments: ['Medical Report', 'Receipt'],                      optionalDocuments: ['Referral Letter'] },
+      INPATIENT:  { enabled: true, requiredDocuments: ['Admission Form', 'Discharge Summary', 'Receipt'], optionalDocuments: ['Lab Results']     },
+      DENTAL:     { enabled: true, requiredDocuments: ['Dental Report', 'Receipt'],                       optionalDocuments: []                  },
     },
     approvalRules: {
       autoApprovalThreshold: 20000,
@@ -133,11 +131,8 @@ async function seedGovhealth() {
       secondaryColor: '#e74c3c',
     },
     claimTypes: {
-      OUTPATIENT: { enabled: true,  requiredDocuments: ['Medical Report', 'Government ID', 'Receipt'],                       optionalDocuments: []          },
-      INPATIENT:  { enabled: true,  requiredDocuments: ['Admission Form', 'Government ID', 'Discharge Summary', 'Receipt'],  optionalDocuments: ['Lab Results'] },
-      DENTAL:     { enabled: false, requiredDocuments: [], optionalDocuments: [] },
-      MATERNITY:  { enabled: false, requiredDocuments: [], optionalDocuments: [] },
-      OPTICAL:    { enabled: false, requiredDocuments: [], optionalDocuments: [] },
+      OUTPATIENT: { enabled: true, requiredDocuments: ['Medical Report', 'Government ID', 'Receipt'],                      optionalDocuments: []              },
+      INPATIENT:  { enabled: true, requiredDocuments: ['Admission Form', 'Government ID', 'Discharge Summary', 'Receipt'], optionalDocuments: ['Lab Results'] },
     },
     approvalRules: {
       autoApprovalThreshold: 0,

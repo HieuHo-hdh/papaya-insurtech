@@ -22,6 +22,11 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<ApiResp
       ...init.headers,
     },
   })
+  if (res.status === 401) {
+    localStorage.removeItem('token')
+    window.location.href = '/login'
+    return { code: 401, message: 'Unauthorized' } as ApiResponse<T>
+  }
   return res.json() as Promise<ApiResponse<T>>
 }
 

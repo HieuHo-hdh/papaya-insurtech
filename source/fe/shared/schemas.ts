@@ -22,18 +22,28 @@ export const CustomFieldTypeEnum = z.enum([
 
 export const BrandingSchema = z.object({
   companyName: z.string().min(1, 'Company name is required'),
-  logoUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
-  primaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Must be a valid hex color'),
-  secondaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Must be a valid hex color'),
+  logoUrl: z.string().url('Must be a valid URL').or(z.literal('')).optional(),
+  primaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Must be a valid hex color').optional(),
+  secondaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Must be a valid hex color').optional(),
 })
 
 // ─── Claim types ─────────────────────────────────────────────────────────────
 
-export const ClaimTypeConfigSchema = z.object({
-  enabled: z.boolean(),
-  requiredDocuments: z.array(z.string()),
-  optionalDocuments: z.array(z.string()),
-})
+export const ClaimTypeConfigSchema = z
+  .object({
+    enabled: z.boolean().optional().default(false),
+    requiredDocuments: z.array(z.string().min(1)).default([]),
+    optionalDocuments: z.array(z.string().min(1)).optional().default([]),
+  })
+  .superRefine((ct, ctx) => {
+    if (ct.enabled && ct.requiredDocuments.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'At least one required document needed when claim type is enabled',
+        path: ['requiredDocuments'],
+      })
+    }
+  })
 
 // ─── Approval rules ───────────────────────────────────────────────────────────
 
@@ -73,20 +83,20 @@ export const NotificationTemplateSchema = z.object({
 
 export const NotificationConfigSchema = z.object({
   event: NotificationEventEnum,
-  channels: z.array(NotificationTemplateSchema),
+  channels: z.array(NotificationTemplateSchema).min(1, 'At least one channel required'),
 })
 
 // ─── SLA ─────────────────────────────────────────────────────────────────────
 
 export const SlaConfigSchema = z.object({
   timezone: z.string().min(1, 'Timezone is required'),
-  weekdays: z.array(WeekdayEnum).min(1, 'At least one business day is required'),
-  holidays: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD')),
-  perClaimType: z.record(
-    z.string(),
-    z.number().int().min(1, 'SLA must be at least 1 business day'),
-  ),
-  escalationContacts: z.array(z.string().email('Must be a valid email')),
+  weekdays: z.array(WeekdayEnum).min(1, 'At least one weekday required'),
+  holidays: z
+    .array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD'))
+    .optional()
+    .default([]),
+  perClaimType: z.record(z.string(), z.number().int().min(1, 'SLA must be at least 1 business day')),
+  escalationContacts: z.array(z.string().email('Must be a valid email')).default([]),
 })
 
 // ─── Custom fields ────────────────────────────────────────────────────────────
@@ -126,18 +136,34 @@ export const CustomFieldSchema = z
 
 // ─── Tenant config ────────────────────────────────────────────────────────────
 
-export const TenantConfigSchema = z.object({
-  branding: BrandingSchema,
-  claimTypes: z
-    .record(ClaimTypeEnum, ClaimTypeConfigSchema)
-    .refine((ct) => Object.values(ct).some((v) => v.enabled), {
-      message: 'At least one claim type must be enabled',
-    }),
-  approvalRules: ApprovalRulesSchema,
-  notifications: z.array(NotificationConfigSchema),
-  sla: SlaConfigSchema,
-  customFields: z.array(CustomFieldSchema),
-})
+export const TenantConfigSchema = z
+  .object({
+    branding: BrandingSchema,
+    claimTypes: z
+      .record(ClaimTypeEnum, ClaimTypeConfigSchema)
+      .refine((ct) => Object.keys(ct).length > 0, {
+        message: 'At least one claim type must be configured',
+      })
+      .refine((ct) => Object.values(ct).some((v) => v.enabled), {
+        message: 'At least one claim type must be enabled',
+      }),
+    approvalRules: ApprovalRulesSchema,
+    notifications: z.array(NotificationConfigSchema),
+    sla: SlaConfigSchema,
+    customFields: z.array(CustomFieldSchema).optional().default([]),
+  })
+  .superRefine((config, ctx) => {
+    const knownKeys = new Set(Object.keys(config.claimTypes))
+    for (const key of Object.keys(config.sla.perClaimType)) {
+      if (!knownKeys.has(key)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `SLA entry "${key}" has no matching claim type in claimTypes`,
+          path: ['sla', 'perClaimType', key],
+        })
+      }
+    }
+  })
 
 // ─── Tenant CRUD ─────────────────────────────────────────────────────────────
 

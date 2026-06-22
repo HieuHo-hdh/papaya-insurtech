@@ -31,6 +31,8 @@ import {
 } from '@ant-design/icons'
 import type { TenantConfig, ClaimType, NotificationEvent } from '@/shared/types'
 import type { Color } from 'antd/es/color-picker'
+import type { FormInstance } from 'antd'
+import { EVENT_LABELS } from '@/shared/constants'
 
 const ALL_CLAIM_TYPES: ClaimType[] = ['OUTPATIENT', 'INPATIENT', 'DENTAL', 'MATERNITY', 'OPTICAL']
 const NOTIFICATION_EVENTS: NotificationEvent[] = [
@@ -80,6 +82,7 @@ interface TenantFormProps {
   initialValues?: TenantFormValues
   onSubmit: (name: string, config: TenantConfig) => Promise<void>
   loading?: boolean
+  form?: FormInstance
 }
 
 function toHex(val: string | Color | undefined): string {
@@ -88,7 +91,7 @@ function toHex(val: string | Color | undefined): string {
   return (val as Color).toHexString?.() ?? '#000000'
 }
 
-export function assembleConfig(values: Record<string, unknown>): TenantConfig {
+function assembleConfig(values: Record<string, unknown>): TenantConfig {
   const branding = (values.branding as Record<string, unknown>) ?? {}
   const slaRaw = (values.sla as Record<string, unknown>) ?? {}
 
@@ -157,11 +160,18 @@ function SectionTitle({ icon, title }: { icon: React.ReactNode; title: string })
   )
 }
 
-export function TenantForm({ initialValues, onSubmit, loading }: TenantFormProps) {
-  const [form] = Form.useForm()
+export function TenantForm({ initialValues, onSubmit, loading, form: externalForm }: TenantFormProps) {
+  const [internalForm] = Form.useForm()
+  const form = externalForm ?? internalForm
+
+  const claimTypesValues = Form.useWatch('claimTypes', form) as TenantConfig['claimTypes'] | undefined
+  const enabledClaimTypes = ALL_CLAIM_TYPES.filter((ct) => claimTypesValues?.[ct]?.enabled)
 
   useEffect(() => {
-    if (!initialValues) return
+    if (!initialValues) {
+      form.setFieldsValue({ sla: { weekdays: ['MON', 'TUE', 'WED', 'THU', 'FRI'] } })
+      return
+    }
     const { name, config } = initialValues
     form.setFieldsValue({
       name,
@@ -212,7 +222,16 @@ export function TenantForm({ initialValues, onSubmit, loading }: TenantFormProps
             </Form.Item>
           </Col>
         </Row>
-        <Form.Item label="Logo URL" name={['branding', 'logoUrl']}>
+        <Form.Item
+          label="Logo URL"
+          name={['branding', 'logoUrl']}
+          rules={[{
+            validator: async (_, value) => {
+              if (!value) return
+              try { new URL(value) } catch { throw new Error('Must be a valid URL') }
+            },
+          }]}
+        >
           <Input placeholder="https://..." />
         </Form.Item>
         <Flex gap={24} wrap="wrap">
@@ -246,6 +265,21 @@ export function TenantForm({ initialValues, onSubmit, loading }: TenantFormProps
             <ClaimTypeSection key={ct} claimType={ct} />
           ))}
         </Row>
+        <Form.Item
+          name="_vClaimTypes"
+          dependencies={ALL_CLAIM_TYPES.map((ct) => ['claimTypes', ct, 'enabled'])}
+          rules={[{
+            validator: async () => {
+              const anyEnabled = ALL_CLAIM_TYPES.some((ct) =>
+                form.getFieldValue(['claimTypes', ct, 'enabled']),
+              )
+              if (!anyEnabled) throw new Error('At least one claim type must be enabled')
+            },
+          }]}
+          style={{ marginBottom: 0, marginTop: 8 }}
+        >
+          <input type="hidden" />
+        </Form.Item>
       </Card>
 
       {/* ── Approval Rules ───────────────────────────────────────── */}
@@ -262,69 +296,91 @@ export function TenantForm({ initialValues, onSubmit, loading }: TenantFormProps
           <InputNumber style={{ width: 200 }} min={0} placeholder="20000" prefix="≤" />
         </Form.Item>
 
-        <Typography.Text strong style={{ display: 'block', marginBottom: 8 }}>
+        <Typography.Text style={{ display: 'block', marginBottom: 8 }}>
           Approval Tiers
         </Typography.Text>
-        <Form.List name={['approvalRules', 'approvalTiers']}>
-          {(fields, { add, remove }) => (
-            <>
-              {fields.map(({ key, name }) => (
-                <Card key={key} style={{ marginBottom: 8, background: '#F9FAFB' }}>
-                  <Row gutter={[8, 0]} align="bottom">
-                    <Col xs={24} sm={6}>
-                      <Form.Item
-                        label="Tier Name"
-                        name={[name, 'tier']}
-                        rules={[{ required: true, message: 'Required' }]}
-                        style={{ marginBottom: 8 }}
-                      >
-                        <Input placeholder="assessor" />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={12} sm={5}>
-                      <Form.Item
-                        label="Greater Than"
-                        name={[name, 'greaterThan']}
-                        style={{ marginBottom: 8 }}
-                      >
-                        <InputNumber style={{ width: '100%' }} min={0} placeholder="20000" />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={12} sm={5}>
-                      <Form.Item
-                        label="Smaller Than"
-                        name={[name, 'smallerThan']}
-                        style={{ marginBottom: 8 }}
-                      >
-                        <InputNumber style={{ width: '100%' }} min={0} placeholder="50000" />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={12} sm={4}>
-                      <Form.Item
-                        label="Primary fallback"
-                        name={[name, 'isPrimary']}
-                        valuePropName="checked"
-                        style={{ marginBottom: 8 }}
-                      >
-                        <Switch />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={12} sm={4}>
-                      <Form.Item style={{ marginBottom: 8 }}>
-                        <Button danger icon={<DeleteOutlined />} onClick={() => remove(name)}>
-                          Remove
-                        </Button>
-                      </Form.Item>
-                    </Col>
-                  </Row>
-                </Card>
-              ))}
-              <Button icon={<PlusOutlined />} onClick={() => add({ tier: '', isPrimary: false })}>
-                Add Tier
-              </Button>
-            </>
-          )}
-        </Form.List>
+        <Form.Item
+          name={['approvalRules', '_vIsPrimary']}
+          dependencies={[['approvalRules', 'approvalTiers']]}
+          rules={[{
+            validator: async () => {
+              const tiers = form.getFieldValue(['approvalRules', 'approvalTiers']) as Array<{ isPrimary?: boolean }> | undefined
+              if (!tiers?.some((t) => t?.isPrimary))
+                throw new Error('At least one tier must be marked as primary (catch-all)')
+            },
+          }]}
+          style={{ marginBottom: 0 }}
+        >
+          <Form.List name={['approvalRules', 'approvalTiers']}>
+            {(fields, { add, remove }) => (
+              <>
+                {fields.map(({ key, name }) => (
+                  <Card key={key} style={{ marginBottom: 8, background: '#F9FAFB' }}>
+                    <Row gutter={[8, 0]} align="bottom">
+                      <Col xs={24} sm={6}>
+                        <Form.Item
+                          label="Tier Name"
+                          name={[name, 'tier']}
+                          rules={[{ required: true, message: 'Required' }]}
+                          style={{ marginBottom: 8 }}
+                        >
+                          <Input placeholder="assessor" />
+                        </Form.Item>
+                      </Col>
+                      <Col xs={12} sm={5}>
+                        <Form.Item
+                          label="Greater Than"
+                          name={[name, 'greaterThan']}
+                          dependencies={[['approvalRules', 'autoApprovalThreshold']]}
+                          rules={[{
+                            validator: async (_, value) => {
+                              if (value == null) return
+                              const threshold = form.getFieldValue(['approvalRules', 'autoApprovalThreshold']) as number | undefined
+                              if (threshold != null && value <= threshold)
+                                throw new Error(`Must be > threshold (${threshold})`)
+                            },
+                          }]}
+                          style={{ marginBottom: 8 }}
+                        >
+                          <InputNumber style={{ width: '100%' }} min={0} placeholder="20000" />
+                        </Form.Item>
+                      </Col>
+                      <Col xs={12} sm={5}>
+                        <Form.Item
+                          label="Smaller Than"
+                          name={[name, 'smallerThan']}
+                          style={{ marginBottom: 8 }}
+                        >
+                          <InputNumber style={{ width: '100%' }} min={0} placeholder="50000" />
+                        </Form.Item>
+                      </Col>
+                      <Col xs={12} sm={4}>
+                        <Form.Item
+                          label="Primary fallback"
+                          name={[name, 'isPrimary']}
+                          valuePropName="checked"
+                          style={{ marginBottom: 8 }}
+                        >
+                          <Switch />
+                        </Form.Item>
+                      </Col>
+                      <Col xs={12} sm={4}>
+                        <Form.Item style={{ marginBottom: 8 }}>
+                          <Button danger icon={<DeleteOutlined />} onClick={() => remove(name)}>
+                            Remove
+                          </Button>
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                  </Card>
+                ))}
+                <Button icon={<PlusOutlined />} onClick={() => add({ tier: '', isPrimary: false })}>
+                  Add Tier
+                </Button>
+              </>
+            )}
+          </Form.List>
+        </Form.Item>
       </Card>
 
       {/* ── Notifications ────────────────────────────────────────── */}
@@ -340,7 +396,7 @@ export function TenantForm({ initialValues, onSubmit, loading }: TenantFormProps
             key: event,
             label: (
               <Tag color="geekblue" style={{ margin: 0 }}>
-                {event}
+                {EVENT_LABELS[event]}
               </Tag>
             ),
             children: <NotificationEventRow event={event} />,
@@ -374,21 +430,27 @@ export function TenantForm({ initialValues, onSubmit, loading }: TenantFormProps
           <Checkbox.Group options={WEEKDAY_OPTIONS} />
         </Form.Item>
 
-        <Typography.Text strong style={{ display: 'block', marginBottom: 8 }}>
+        <Typography.Text style={{ display: 'block', marginBottom: 8 }}>
           SLA Days Per Claim Type
         </Typography.Text>
-        <Row gutter={[12, 0]}>
-          {ALL_CLAIM_TYPES.map((ct) => (
-            <Col xs={12} sm={8} md={4} key={ct}>
-              <Form.Item
-                label={<Tag color={CLAIM_TYPE_COLORS[ct]}>{ct}</Tag>}
-                name={['sla', 'perClaimType', ct]}
-              >
-                <InputNumber min={1} placeholder="5" style={{ width: '100%' }} suffix="d" />
-              </Form.Item>
-            </Col>
-          ))}
-        </Row>
+        {enabledClaimTypes.length === 0 ? (
+          <Typography.Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
+            Enable claim types above to configure SLA days.
+          </Typography.Text>
+        ) : (
+          <Row gutter={[12, 0]}>
+            {enabledClaimTypes.map((ct) => (
+              <Col xs={12} sm={8} md={4} key={ct}>
+                <Form.Item
+                  label={<Tag color={CLAIM_TYPE_COLORS[ct]}>{ct}</Tag>}
+                  name={['sla', 'perClaimType', ct]}
+                >
+                  <InputNumber min={1} placeholder="5" style={{ width: '100%' }} suffix="d" />
+                </Form.Item>
+              </Col>
+            ))}
+          </Row>
+        )}
 
         <Form.Item label="Holiday Dates (skip)">
           <Form.List name={['sla', 'holidays']}>
@@ -514,7 +576,20 @@ function ClaimTypeSection({ claimType }: { claimType: ClaimType }) {
         </Flex>
         {enabled && (
           <Flex vertical gap={8}>
-            <DocList claimType={claimType} listKey="requiredDocuments" label="Required Docs" />
+            <Form.Item
+              name={['_vReqDocs', claimType]}
+              dependencies={[['claimTypes', claimType, 'requiredDocuments']]}
+              rules={[{
+                validator: async () => {
+                  const docs = (form.getFieldValue(['claimTypes', claimType, 'requiredDocuments']) as string[] | undefined) ?? []
+                  if (docs.filter((d) => d?.trim()).length === 0)
+                    throw new Error('At least one required document needed')
+                },
+              }]}
+              style={{ marginBottom: 0 }}
+            >
+              <DocList claimType={claimType} listKey="requiredDocuments" label="Required Docs" />
+            </Form.Item>
             <DocList claimType={claimType} listKey="optionalDocuments" label="Optional Docs" />
           </Flex>
         )}
@@ -539,10 +614,14 @@ function DocList({
           <Typography.Text type="secondary" style={{ fontSize: 12 }}>
             {label}
           </Typography.Text>
-          {fields.map(({ key, name, ...rest }) => (
-            <Flex key={key} gap={6}>
-              <Form.Item {...rest} name={name} noStyle>
-                <Input placeholder="e.g. Medical Report" style={{ flex: 1 }} />
+          {fields.map(({ key, name }) => (
+            <Flex key={key} gap={6} align="start">
+              <Form.Item
+                name={name}
+                rules={[{ required: true, whitespace: true, message: 'Document name cannot be empty' }]}
+                style={{ flex: 1, marginBottom: 0 }}
+              >
+                <Input placeholder="e.g. Medical Report" />
               </Form.Item>
               <Button danger icon={<DeleteOutlined />} onClick={() => remove(name)} />
             </Flex>
@@ -668,10 +747,34 @@ function CustomFieldRow({ name, onRemove }: { name: number; onRemove: () => void
       )}
       {fieldType === 'number' && (
         <Space>
-          <Form.Item label="Min" name={[name, 'min']} style={{ marginBottom: 0 }}>
+          <Form.Item
+            label="Min"
+            name={[name, 'min']}
+            dependencies={[['customFields', name, 'max']]}
+            rules={[{
+              validator: async (_, value) => {
+                if (value == null) return
+                const max = form.getFieldValue(['customFields', name, 'max']) as number | undefined
+                if (max != null && value >= max) throw new Error('Must be < max')
+              },
+            }]}
+            style={{ marginBottom: 0 }}
+          >
             <InputNumber style={{ width: 100 }} />
           </Form.Item>
-          <Form.Item label="Max" name={[name, 'max']} style={{ marginBottom: 0 }}>
+          <Form.Item
+            label="Max"
+            name={[name, 'max']}
+            dependencies={[['customFields', name, 'min']]}
+            rules={[{
+              validator: async (_, value) => {
+                if (value == null) return
+                const min = form.getFieldValue(['customFields', name, 'min']) as number | undefined
+                if (min != null && value <= min) throw new Error('Must be > min')
+              },
+            }]}
+            style={{ marginBottom: 0 }}
+          >
             <InputNumber style={{ width: 100 }} />
           </Form.Item>
         </Space>
@@ -680,6 +783,12 @@ function CustomFieldRow({ name, onRemove }: { name: number; onRemove: () => void
         <Form.Item
           label="Options (comma-separated)"
           name={[name, 'options']}
+          rules={[{
+            validator: async (_, value) => {
+              const opts = (value as string | undefined)?.split(',').map((s) => s.trim()).filter(Boolean) ?? []
+              if (opts.length === 0) throw new Error('At least one option required for select type')
+            },
+          }]}
           style={{ marginBottom: 0 }}
         >
           <Input placeholder="option1, option2, option3" />

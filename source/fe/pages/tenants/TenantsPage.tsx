@@ -18,6 +18,7 @@ import {
   Statistic,
   Avatar,
   Skeleton,
+  Switch,
 } from 'antd'
 import {
   PlusOutlined,
@@ -52,10 +53,11 @@ export default function TenantsPage() {
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(false)
   const [search, setSearch] = useState('')
+  const [showDeleted, setShowDeleted] = useState(false)
 
-  const loadTenants = async (p: number) => {
+  const loadTenants = async (p: number, deleted = showDeleted) => {
     setLoading(true)
-    const res = await tenantsApi.list(p, 20)
+    const res = await tenantsApi.list(p, 20, deleted)
     if (isSuccess(res.code) && res.data) {
       dispatch(setTenants({ data: res.data.data, total: res.data.total }))
     }
@@ -70,7 +72,7 @@ export default function TenantsPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     loadTenants(page)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page])
+  }, [page, showDeleted])
 
   const handleDelete = async (id: string) => {
     const res = await tenantsApi.remove(id)
@@ -124,15 +126,15 @@ export default function TenantsPage() {
     },
     {
       title: 'Status',
-      width: 110,
-      render: (_, record) =>
-        record.configs[0] ? (
-          <Tag color="green" icon={<CheckCircleOutlined />}>
-            Active
-          </Tag>
+      width: 120,
+      render: (_, record) => {
+        if (record.deletedAt) return <Tag color="red">Deleted</Tag>
+        return record.configs[0] ? (
+          <Tag color="green" icon={<CheckCircleOutlined />}>Active</Tag>
         ) : (
           <Tag color="default">No config</Tag>
-        ),
+        )
+      },
     },
     {
       title: 'Last Updated',
@@ -151,35 +153,41 @@ export default function TenantsPage() {
     {
       title: 'Actions',
       width: 100,
-      render: (_, record) => (
-        <Space>
-          <Button
-            type="text"
-            icon={<EditOutlined />}
-            onClick={(e) => {
-              e.stopPropagation()
-              navigate(`/tenants/${record.id}`)
-            }}
-          />
-          <Popconfirm
-            title="Delete this tenant?"
-            description="This action cannot be undone."
-            onConfirm={(e) => {
-              e?.stopPropagation()
-              handleDelete(record.id)
-            }}
-            okText="Delete"
-            okButtonProps={{ danger: true }}
-          >
+      render: (_, record) => {
+        const isDeleted = !!record.deletedAt
+        return (
+          <Space>
             <Button
               type="text"
-              danger
-              icon={<DeleteOutlined />}
-              onClick={(e) => e.stopPropagation()}
+              icon={<EditOutlined />}
+              disabled={isDeleted}
+              onClick={(e) => {
+                e.stopPropagation()
+                navigate(`/tenants/${record.id}`)
+              }}
             />
-          </Popconfirm>
-        </Space>
-      ),
+            <Popconfirm
+              title="Delete this tenant?"
+              description="This action cannot be undone."
+              disabled={isDeleted}
+              onConfirm={(e) => {
+                e?.stopPropagation()
+                handleDelete(record.id)
+              }}
+              okText="Delete"
+              okButtonProps={{ danger: true }}
+            >
+              <Button
+                type="text"
+                danger
+                icon={<DeleteOutlined />}
+                disabled={isDeleted}
+                onClick={(e) => e.stopPropagation()}
+              />
+            </Popconfirm>
+          </Space>
+        )
+      },
     },
   ]
 
@@ -263,6 +271,14 @@ export default function TenantsPage() {
           onChange={(e) => setSearch(e.target.value)}
         />
         <Space>
+          <Space size={6}>
+            <Switch
+              size="small"
+              checked={showDeleted}
+              onChange={(v) => { setShowDeleted(v); setPage(1) }}
+            />
+            <Typography.Text type="secondary" style={{ fontSize: 13 }}>Show deleted</Typography.Text>
+          </Space>
           <Button icon={<ReloadOutlined />} onClick={() => loadTenants(page)} loading={loading} />
           <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/tenants/new')}>
             New Tenant
@@ -286,8 +302,8 @@ export default function TenantsPage() {
           // loading={false}
           scroll={{ x: 600 }}
           onRow={(record) => ({
-            onClick: () => navigate(`/tenants/${record.id}`),
-            style: { cursor: 'pointer' },
+            onClick: () => !record.deletedAt && navigate(`/tenants/${record.id}`),
+            style: { cursor: record.deletedAt ? 'default' : 'pointer', opacity: record.deletedAt ? 0.5 : 1 },
           })}
           pagination={{
             current: page,
