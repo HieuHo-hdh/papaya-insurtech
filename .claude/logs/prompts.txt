@@ -730,3 +730,15 @@ AI Response Summary:
 - enabledClaimTypes now correctly filters by ct.enabled, making perClaimType inputs reactive to toggle changes
 ----------
 
+AI Response Summary:
+- Checked documents/planning/ — no DB diagram or system design existed
+- Created documents/planning/system-design.md with: high-level architecture diagram, ER diagram (Mermaid), config JSONB schema, full API surface table, processClaim data flow, FE component tree, Redux state map, security table, key design decisions
+- ER diagram reflects exact Prisma schema (users, tenants, tenant_configs with constraints)
+----------
+
+AI Response Summary:
+- SA analyzed greaterThan boundary: amount=20000 with threshold=20000 IS auto-approved (amount<=threshold catches it before tier loop); seed data is correct, no gap/overlap
+- Identified real issue: approvalTiers:[] is ambiguous (auto-approved vs no tiers) — recommend adding autoApproved:boolean to ProcessClaimResult
+- Created documents/planning/deployment.md with step-by-step plan: Railway Postgres → Railway BE → Vercel FE → CORS config → smoke test; includes env var tables and cost estimate (~$10/month)
+----------
+

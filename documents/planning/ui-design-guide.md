@@ -248,7 +248,7 @@ const theme: ThemeConfig = {
 }
 ```
 
-Tenant-specific branding overrides only `colorPrimary` and `colorInfo` (via `useTenantTheme` hook).
+The theme is static — `buildTheme()` in `fe/lib/theme.ts` uses fixed teal tokens (`#0D9488` / `#2DD4BF`). Tenant branding colors (primaryColor, secondaryColor) are stored in config for reference but do not override the admin shell theme.
 
 ### 0.10 `Flex` Component
 
@@ -902,4 +902,4 @@ Form `layout` prop: `vertical` always (safe for all widths).
 | `app/(admin)/diff/page.tsx` | Steps progress, category filter, row coloring |
 | `components/claims/ClaimTester.tsx` | Two-column layout, Statistic + Steps result |
 | `app/layout.tsx` | Wrap with `<App>` for unified notification context |
-| `lib/theme.ts` | Add `DEFAULT_THEME_TOKENS` with indigo primary |
+| `lib/theme.ts` | Static `buildTheme()` with fixed teal palette — no dynamic tenant color overrides |

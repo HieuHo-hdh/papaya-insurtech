@@ -65,6 +65,7 @@ All decisions below are confirmed. Do not deviate without explicit approval.
   }
 
   claimTypes: {
+    // Partial record — only include types you configure; at least 1 must be enabled
     [ClaimType]: {
       enabled: boolean
       requiredDocuments: string[]
@@ -184,10 +185,12 @@ Available in `template` strings: `{{claimant_name}}`, `{{claim_id}}`, `{{claim_t
 
 Seeded admin: `admin@papaya.dev` / `Admin@1234`. No public register endpoint.
 
+**FE API client behaviour:** auto-redirects to `/login` on HTTP 401 and clears the stored token.
+
 ### Tenants
 | Method | Path | Notes |
 |--------|------|-------|
-| GET | `/api/tenants` | Paginated, active tenants only |
+| GET | `/api/tenants` | Paginated; active tenants by default. Pass `?showDeleted=true` to include soft-deleted tenants |
 | POST | `/api/tenants` | Create tenant + initial config |
 | GET | `/api/tenants/:id` | Tenant + active config |
 | PUT | `/api/tenants/:id` | Update config — auto-creates new version |
@@ -233,14 +236,15 @@ Seeded admin: `admin@papaya.dev` / `Admin@1234`. No public register endpoint.
 
 ```json
 {
-  "tenantA": { },
-  "tenantB": { },
+  "tenantA": { "id": "...", "name": "SafeGuard", "config": { } },
+  "tenantB": { "id": "...", "name": "HealthFirst", "config": { } },
   "diffs": [
-    { "path": "approvalRules.autoApprovalThreshold", "valueA": 20000, "valueB": 5000 }
+    { "section": "approvalRules", "path": "approvalRules.autoApprovalThreshold", "valueA": 20000, "valueB": 5000 }
   ]
 }
 ```
-No `type` field in diff entries.
+
+Each `DiffEntry` has a `section` field — the top-level config key (`branding | claimTypes | approvalRules | notifications | sla | customFields`). `DiffResponse` wraps each side as `{ id, name, config }`. No `type` field in diff entries.
 
 ---
 
@@ -253,7 +257,9 @@ Rolling back to vN while on vM (M > N) creates v(M+1) as a copy of vN config. Li
 ## Validation Rules (enforced at save)
 
 - `autoApprovalThreshold ≥ 0`
-- At least 1 claim type enabled
+- `claimTypes` is a partial record — only include configured types; at least 1 must have `enabled: true`
+- `requiredDocuments.length ≥ 1` only when that claim type is `enabled: true`; disabled types need no documents
+- All keys in `sla.perClaimType` must exist as keys in `claimTypes`
 - At least 1 `isPrimary` tier
 - All tier `greaterThan > autoApprovalThreshold`
 - `greaterThan < smallerThan` per tier
