@@ -37,9 +37,7 @@ Browser
 
 1. In the same Railway project → **New Service** → **GitHub Repo**
 2. Select the repo, set the **Root Directory** to `source/be`
-3. Railway auto-detects Node.js. Override the build/start commands:
-   - **Build command:** `npm install && npx prisma generate && npm run build`
-   - **Start command:** `node dist/index.js`
+3. Railway auto-detects the `Dockerfile` and uses it — no build/start command overrides needed.
 
 ### 2b. Set environment variables
 
@@ -57,17 +55,10 @@ In the BE service → **Variables** tab, add:
 After first deploy, open the BE service → **Shell** tab (or use Railway CLI):
 
 ```bash
-npx prisma migrate deploy
-npx ts-node --esm prisma/seed.ts
+npm run db:deploy
 ```
 
-Or add a one-off deploy command in `package.json`:
-
-```json
-"db:deploy": "prisma migrate deploy && ts-node --esm prisma/seed.ts"
-```
-
-Then run it via Railway shell: `npm run db:deploy`
+This runs `prisma migrate deploy && ts-node -r tsconfig-paths/register prisma/seed.ts` (already in `package.json`).
 
 ### 2d. Confirm BE is live
 
@@ -115,7 +106,7 @@ Click **Deploy**. Vercel builds and assigns a URL like `https://papaya-<hash>.ve
 
 The BE must allow requests from the Vercel domain.
 
-In `source/be/src/index.ts` (or wherever `cors()` is configured):
+In `source/be/src/app.ts` (already updated):
 
 ```typescript
 app.use(cors({ origin: env.CORS_ORIGIN, credentials: true }))
@@ -162,7 +153,7 @@ BE service → **Settings** → **Custom Domain** → add subdomain (e.g. `api.y
 |----------|----------|-------|
 | `DATABASE_URL` | ✓ | From Railway Postgres |
 | `JWT_SECRET` | ✓ | Min 32 chars random |
-| `PORT` | ✓ | `3000` |
+| `PORT` | ✓ | `3001` |
 | `NODE_ENV` | ✓ | `production` |
 | `CORS_ORIGIN` | ✓ | Vercel FE URL |
 
