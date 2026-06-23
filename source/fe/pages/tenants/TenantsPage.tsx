@@ -89,6 +89,7 @@ export default function TenantsPage() {
   const columns: ColumnsType<TenantRow> = [
     {
       title: 'Tenant',
+      width: 220,
       render: (_, record) => (
         <Flex align="center" gap={12}>
           <Avatar style={{ background: '#0D9488', flexShrink: 0 }}>

@@ -259,7 +259,7 @@ function ClaimResult({ result }: { result: ProcessClaimResult }) {
           />
         ) : (
           <Steps
-            direction="vertical"
+            orientation="vertical"
             current={result.approvalTiers.length}
             items={result.approvalTiers.map((t) => ({
               title: <Typography.Text strong>{t.tier}</Typography.Text>,
