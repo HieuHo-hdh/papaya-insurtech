@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import {
   Table,
   Button,
@@ -16,10 +16,18 @@ import {
 } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { ReloadOutlined, EyeOutlined } from '@ant-design/icons'
-import { tenantsApi, type VersionRow } from '@/lib/api/tenants'
-import { isSuccess } from '@/lib/api/client'
+import type { VersionRow } from '@/lib/api/tenants'
 import type { ClaimType } from '@/shared/types'
 import dayjs from 'dayjs'
+import { useAppDispatch } from '@/hooks/useAppDispatch'
+import { useAppSelector } from '@/hooks/useAppSelector'
+import {
+  fetchVersions,
+  fetchVersionPreview,
+  rollbackVersion,
+  resetVersions,
+  clearPreview,
+} from '@/store/slices/versionsSlice'
 
 const CLAIM_TYPE_COLORS: Record<ClaimType, string> = {
   OUTPATIENT: 'blue',
@@ -185,47 +193,29 @@ function ConfigPreview({ version }: { version: VersionRow }) {
 
 export function VersionHistory({ tenantId, onRollback }: VersionHistoryProps) {
   const [messageApi, contextHolder] = message.useMessage()
-  const [versions, setVersions] = useState<VersionRow[]>([])
-  const [total, setTotal] = useState(0)
-  const [page, setPage] = useState(1)
-  const [loading, setLoading] = useState(false)
-  const [rollingBack, setRollingBack] = useState<string | null>(null)
-  const [previewVersion, setPreviewVersion] = useState<VersionRow | null>(null)
-  const [previewLoading, setPreviewLoading] = useState<string | null>(null)
-
-  const loadVersions = async (p: number) => {
-    setLoading(true)
-    const res = await tenantsApi.listVersions(tenantId, p, 10)
-    if (isSuccess(res.code) && res.data) {
-      setVersions(res.data.data)
-      setTotal(res.data.total)
-    }
-    setLoading(false)
-  }
+  const dispatch = useAppDispatch()
+  const { items: versions, total, page, loading, rollingBack, previewVersion, previewLoading } =
+    useAppSelector((s) => s.versions)
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadVersions(page)
+    dispatch(resetVersions())
+    dispatch(fetchVersions({ tenantId, page: 1 }))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page])
+  }, [tenantId])
 
-  const handlePreview = async (record: VersionRow) => {
-    setPreviewLoading(record.id)
-    const res = await tenantsApi.getVersion(tenantId, record.id)
-    if (isSuccess(res.code) && res.data) setPreviewVersion(res.data)
-    setPreviewLoading(null)
+  const handlePreview = (record: VersionRow) => {
+    dispatch(fetchVersionPreview({ tenantId, versionId: record.id }))
   }
 
   const handleRollback = async (versionId: string) => {
-    setRollingBack(versionId)
-    const res = await tenantsApi.rollback(tenantId, versionId)
-    if (isSuccess(res.code)) {
+    const result = await dispatch(rollbackVersion({ tenantId, versionId }))
+    if (rollbackVersion.fulfilled.match(result)) {
       messageApi.success('Rolled back successfully — new version created')
+      dispatch(fetchVersions({ tenantId, page: 1 }))
       onRollback()
     } else {
-      messageApi.error(res.message || 'Rollback failed')
+      messageApi.error((result.payload as string) || 'Rollback failed')
     }
-    setRollingBack(null)
   }
 
   const columns: ColumnsType<VersionRow> = [
@@ -285,7 +275,11 @@ export function VersionHistory({ tenantId, onRollback }: VersionHistoryProps) {
           Version History
         </Typography.Title>
         <Tooltip title="Refresh">
-          <Button icon={<ReloadOutlined />} onClick={() => loadVersions(page)} loading={loading} />
+          <Button
+            icon={<ReloadOutlined />}
+            onClick={() => dispatch(fetchVersions({ tenantId, page }))}
+            loading={loading}
+          />
         </Tooltip>
       </Flex>
       <Table
@@ -297,7 +291,7 @@ export function VersionHistory({ tenantId, onRollback }: VersionHistoryProps) {
           current: page,
           total,
           pageSize: 10,
-          onChange: setPage,
+          onChange: (p) => dispatch(fetchVersions({ tenantId, page: p })),
           showTotal: (t) => `${t} versions`,
         }}
       />
@@ -305,7 +299,7 @@ export function VersionHistory({ tenantId, onRollback }: VersionHistoryProps) {
       <Drawer
         title={previewVersion ? `Config Preview — v${previewVersion.version}` : 'Config Preview'}
         open={!!previewVersion}
-        onClose={() => setPreviewVersion(null)}
+        onClose={() => dispatch(clearPreview())}
         size={640}
         destroyOnHidden
       >

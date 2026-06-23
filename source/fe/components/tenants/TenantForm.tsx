@@ -239,13 +239,13 @@ export function TenantForm({ initialValues, onSubmit, loading, form: externalFor
           <Form.Item label="Primary Color" name={['branding', 'primaryColor']}>
             <ColorPicker
               format="hex"
-              onChange={(_, hex) => form.setFieldValue(['branding', 'primaryColor'], hex)}
+              onChange={(color) => form.setFieldValue(['branding', 'primaryColor'], color.toHexString())}
             />
           </Form.Item>
           <Form.Item label="Secondary Color" name={['branding', 'secondaryColor']}>
             <ColorPicker
               format="hex"
-              onChange={(_, hex) => form.setFieldValue(['branding', 'secondaryColor'], hex)}
+              onChange={(color) => form.setFieldValue(['branding', 'secondaryColor'], color.toHexString())}
             />
           </Form.Item>
         </Flex>
@@ -445,6 +445,7 @@ export function TenantForm({ initialValues, onSubmit, loading, form: externalFor
                 <Form.Item
                   label={<Tag color={CLAIM_TYPE_COLORS[ct]}>{ct}</Tag>}
                   name={['sla', 'perClaimType', ct]}
+                  rules={[{ required: true, message: 'Required' }]}
                 >
                   <InputNumber min={1} placeholder="5" style={{ width: '100%' }} suffix="d" />
                 </Form.Item>

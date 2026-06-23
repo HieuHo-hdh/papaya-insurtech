@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAppDispatch } from '@/hooks/useAppDispatch'
 import { updateTenantInList } from '@/store/slices/tenantsSlice'
+import { fetchVersions } from '@/store/slices/versionsSlice'
 import { Typography, Flex, message, Button, Tabs, Tag, Skeleton } from 'antd'
 import {
   ArrowLeftOutlined,
@@ -25,6 +26,7 @@ export default function TenantDetailPage() {
   const [tenant, setTenant] = useState<TenantRow | null>(null)
   const [loading, setLoading] = useState(false)
   const [fetching, setFetching] = useState(true)
+  const [activeTab, setActiveTab] = useState('config')
 
   const activeConfig = tenant?.configs[0]?.config ?? null
 
@@ -50,12 +52,13 @@ export default function TenantDetailPage() {
     const res = await tenantsApi.update(id, config)
     if (isSuccess(res.code) && res.data) {
       dispatch(updateTenantInList(res.data))
+      dispatch(fetchVersions({ tenantId: id, page: 1 }))
       messageApi.success('Config saved as new version')
-      navigate('/tenants')
+      setActiveTab('history')
     } else {
       messageApi.error(res.message || 'Failed to save')
-      setLoading(false)
     }
+    setLoading(false)
   }
 
   return (
@@ -91,7 +94,8 @@ export default function TenantDetailPage() {
         </Flex>
       ) : (
         <Tabs
-          defaultActiveKey="config"
+          activeKey={activeTab}
+          onChange={setActiveTab}
           size="large"
           items={[
             {

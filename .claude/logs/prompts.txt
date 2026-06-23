@@ -896,3 +896,15 @@ AI Response Summary:
 - Added `width: 220` to the Tenant column in TenantsPage.tsx to enforce a minimum column width
 ----------
 
+----------
+Prompted at: 23/06/2026 - 23:41:42 (GMT+7)
+Prompt: for version-history, after creating successfully, it doesn't add a new version. I think it's better to add a redux slice here, also handle for loading
+----------
+AI Response Summary:
+- Created versionsSlice.ts with fetchVersions, fetchVersionPreview, rollbackVersion async thunks and loading/rollingBack/previewLoading states
+- Registered versionsReducer in store/index.ts
+- Refactored VersionHistory.tsx to use Redux state instead of local useState for all async operations
+- Updated TenantDetailPage: after save, dispatch fetchVersions + switch to history tab instead of navigating away
+- Fixed ColorPicker bug: onChange second arg returns RGB when user switches picker format; changed to color.toHexString() to always get hex
+----------
+
