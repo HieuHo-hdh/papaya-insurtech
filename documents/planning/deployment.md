@@ -49,7 +49,7 @@ In the BE service → **Variables** tab, add:
 |----------|-------|
 | `DATABASE_URL` | (paste from Step 1) |
 | `JWT_SECRET` | a strong random string (e.g. `openssl rand -hex 32`) |
-| `PORT` | `3000` (Railway exposes this automatically) |
+| `PORT` | `3001` (Railway exposes this automatically) |
 | `NODE_ENV` | `production` |
 
 ### 2c. Run database migration + seed
@@ -94,16 +94,16 @@ In Vercel project → **Settings** → **Environment Variables**:
 
 | Variable | Value |
 |----------|-------|
-| `VITE_API_BASE_URL` | `https://be-<hash>.railway.app` (your Railway BE URL) |
+| `VITE_API_URL` | `https://be-<hash>.railway.app/api` (your Railway BE URL, include `/api`) |
 
 ### 3c. Verify `vite.config.ts` uses the env var
 
-Confirm `source/fe/lib/api/client.ts` (or vite config) reads:
+Confirm `source/fe/lib/api/client.ts` reads:
 ```typescript
-const BASE_URL = import.meta.env.VITE_API_BASE_URL
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
 ```
 
-If it currently hardcodes `http://localhost:3000`, update it.
+This is already in place — no changes needed.
 
 ### 3d. Deploy
 
@@ -118,17 +118,14 @@ The BE must allow requests from the Vercel domain.
 In `source/be/src/index.ts` (or wherever `cors()` is configured):
 
 ```typescript
-app.use(cors({
-  origin: process.env.ALLOWED_ORIGIN || 'http://localhost:5173',
-  credentials: true,
-}))
+app.use(cors({ origin: env.CORS_ORIGIN, credentials: true }))
 ```
 
 Add to Railway BE variables:
 
 | Variable | Value |
 |----------|-------|
-| `ALLOWED_ORIGIN` | `https://papaya-<hash>.vercel.app` |
+| `CORS_ORIGIN` | `https://papaya-<hash>.vercel.app` |
 
 Redeploy BE after adding this variable.
 
@@ -167,13 +164,13 @@ BE service → **Settings** → **Custom Domain** → add subdomain (e.g. `api.y
 | `JWT_SECRET` | ✓ | Min 32 chars random |
 | `PORT` | ✓ | `3000` |
 | `NODE_ENV` | ✓ | `production` |
-| `ALLOWED_ORIGIN` | ✓ | Vercel FE URL |
+| `CORS_ORIGIN` | ✓ | Vercel FE URL |
 
 ### FE (Vercel)
 
 | Variable | Required | Notes |
 |----------|----------|-------|
-| `VITE_API_BASE_URL` | ✓ | Railway BE URL (no trailing slash) |
+| `VITE_API_URL` | ✓ | Railway BE URL with `/api` suffix |
 
 ---
 

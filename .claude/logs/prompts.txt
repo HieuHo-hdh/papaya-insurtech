@@ -742,3 +742,48 @@ AI Response Summary:
 - Created documents/planning/deployment.md with step-by-step plan: Railway Postgres → Railway BE → Vercel FE → CORS config → smoke test; includes env var tables and cost estimate (~$10/month)
 ----------
 
+AI Response Summary:
+- Added explicit @jest/globals imports (describe, it, expect, beforeAll, afterAll) to all 5 API test files in source/be/src/__tests__/api/
+- Left auth.service.test.ts untouched — it uses jest.mock() hoisting which requires implicit globals
+- Full npm test suite: 109 tests across 7 suites, all passing
+----------
+
+AI Response Summary:
+- Read all 11 Playwright test-result screenshots (T2-T14) and produced full tech lead verdict
+- Found ZERO real app bugs — all 11 failures are test code or environment issues
+- Cleaned up 5 SLAKey + 1 QA Tenant orphan tenants from DB (6 total deleted)
+- Fixed all selector issues in e2e/admin.spec.ts: T2 now intercepts network response, T7 uses .ant-card instead of .ant-collapse-item, T8-T12 navigate directly by ID, T13 uses exact:true, T14 uses .first()
+----------
+
+AI Response Summary:
+- Ran Playwright E2E tests: went from 0/15 to 15/15 passing
+- Fixed T12: used `label[title="Claim Type"]` to avoid matching section headers
+- Fixed T14 (multiple iterations): Ant Design keeps both dropdown portals in DOM; solved by pressing Escape after selecting SafeGuard, then using `.nth(1)` to target Tenant B's portal
+- BE tests: 109/109 still passing
+- Total test coverage: 109 BE unit/integration tests + 15 UI E2E tests = 124 tests, all green
+----------
+
+[2026-06-23 18:40:20 (GMT+7)] Session started: 52c3781a-6e91-4e5f-abaf-e28fd2a043e3
+----------
+Prompted at: 23/06/2026 - 18:41:06 (GMT+7)
+Prompt: SA review @../../documents/planning/deployment.md, ask me if you need to ask Mcp, set up the flow for set up both BE and connect FE with hosted BE
+----------
+AI Response Summary:
+- Reviewed deployment.md against actual codebase (BE + FE)
+- Fixed CORS in app.ts: replaced open cors() with cors({ origin: env.CORS_ORIGIN, credentials: true })
+- Added CORS_ORIGIN to env.ts Zod schema (default: localhost:5173)
+- Added db:deploy script to BE package.json for Railway shell seeding
+- Corrected 3 errors in deployment.md: VITE_API_URL (not BASE_URL), CORS_ORIGIN (not ALLOWED_ORIGIN), PORT 3001 (not 3000)
+- Provided step-by-step Railway+Vercel deployment flow
+----------
+
+----------
+Prompted at: 23/06/2026 - 18:46:33 (GMT+7)
+Prompt: For hosting BE on Railway, recheck and update dockerfile
+----------
+AI Response Summary:
+- Fixed Dockerfile: replaced CMD npm run dev with npx prisma generate + npm run build + node dist/index.js
+- Confirmed Railway supports Dockerfile deployments (auto-detected)
+- Clarified that migrations/seed still run manually via Railway Shell after deploy
+----------
+
