@@ -83,7 +83,15 @@ export default function LoginPage() {
             <Typography.Title level={3} style={{ margin: 0 }}>
               Sign in
             </Typography.Title>
-            <Typography.Text type="secondary">Enter your credentials to continue</Typography.Text>
+            <Typography.Text type="secondary">Enter your credentials (example credentials below)</Typography.Text>
+            <Flex gap={8}>
+              <Typography.Text copyable>
+                admin@papaya.dev
+              </Typography.Text>
+              <Typography.Text copyable>
+                Admin@1234
+              </Typography.Text>
+            </Flex>
           </Flex>
 
           <Form form={form} layout="vertical" onFinish={onFinish} requiredMark={false} size="large">
