@@ -800,3 +800,15 @@ AI Response Summary:
 - Confirmed deployment.md is now accurate and ready to use
 ----------
 
+----------
+Prompted at: 23/06/2026 - 21:05:16 (GMT+7)
+Prompt: Please update @README.md, I want you to add a short description as well as its destination (if have)
+----------
+AI Response Summary:
+- Updated README.md with short descriptions and destinations for all sections
+- Added project overview (tech stack, GitHub link, deploy URL placeholders)
+- Linked LOGICAL QUESTIONS → Logical_Questions/README.md
+- Linked ARCHITECTURE + all planning docs with descriptions
+- Documented AI role-based command system with table of all 10 commands
+----------
+
