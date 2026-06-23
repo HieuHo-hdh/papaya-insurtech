@@ -1,11 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Typography, Flex, Button, message, Divider } from 'antd'
 import { ArrowLeftOutlined } from '@ant-design/icons'
 import { TenantForm } from '@/components/tenants/TenantForm'
 import { tenantsApi } from '@/lib/api/tenants'
 import { isSuccess } from '@/lib/api/client'
-import { hasToken } from '@/lib/api/auth'
 import { useAppDispatch } from '@/hooks/useAppDispatch'
 import { addTenant } from '@/store/slices/tenantsSlice'
 import type { TenantConfig } from '@/shared/types'
@@ -15,10 +14,6 @@ export default function NewTenantPage() {
   const dispatch = useAppDispatch()
   const [messageApi, contextHolder] = message.useMessage()
   const [loading, setLoading] = useState(false)
-
-  useEffect(() => {
-    if (!hasToken()) navigate('/login')
-  }, [navigate])
 
   const handleSubmit = async (name: string, config: TenantConfig) => {
     setLoading(true)

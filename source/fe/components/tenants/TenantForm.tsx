@@ -523,7 +523,6 @@ export function TenantForm({ initialValues, onSubmit, loading, form: externalFor
           type="primary"
           htmlType="submit"
           loading={loading}
-          size="large"
           icon={<SaveOutlined />}
         >
           Save Configuration

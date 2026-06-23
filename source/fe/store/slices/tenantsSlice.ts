@@ -1,15 +1,29 @@
-import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
-import type { TenantRow } from '@/lib/api/tenants'
+import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit'
+import { tenantsApi, type TenantRow } from '@/lib/api/tenants'
+import { isSuccess } from '@/lib/api/client'
 
 interface TenantsState {
   list: TenantRow[]
   total: number
+  detail: TenantRow | null
+  detailLoading: boolean
 }
 
 const initialState: TenantsState = {
   list: [],
   total: 0,
+  detail: null,
+  detailLoading: false,
 }
+
+export const fetchTenantDetail = createAsyncThunk(
+  'tenants/fetchDetail',
+  async (id: string, { rejectWithValue }) => {
+    const res = await tenantsApi.getById(id)
+    if (isSuccess(res.code) && res.data) return res.data
+    return rejectWithValue(res.message || 'Failed to load tenant')
+  },
+)
 
 const tenantsSlice = createSlice({
   name: 'tenants',
@@ -31,8 +45,29 @@ const tenantsSlice = createSlice({
       state.list = state.list.filter((t) => t.id !== action.payload)
       state.total -= 1
     },
+    setDetail(state, action: PayloadAction<TenantRow>) {
+      state.detail = action.payload
+    },
+    clearDetail(state) {
+      state.detail = null
+      state.detailLoading = false
+    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchTenantDetail.pending, (state) => {
+        state.detailLoading = true
+      })
+      .addCase(fetchTenantDetail.fulfilled, (state, action) => {
+        state.detail = action.payload
+        state.detailLoading = false
+      })
+      .addCase(fetchTenantDetail.rejected, (state) => {
+        state.detailLoading = false
+      })
   },
 })
 
-export const { setTenants, addTenant, updateTenantInList, removeTenant } = tenantsSlice.actions
+export const { setTenants, addTenant, updateTenantInList, removeTenant, setDetail, clearDetail } =
+  tenantsSlice.actions
 export default tenantsSlice.reducer

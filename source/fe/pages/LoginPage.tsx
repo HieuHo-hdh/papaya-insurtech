@@ -1,19 +1,27 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Form, Input, Button, Typography, Flex, message } from 'antd'
+import { Form, Input, Button, Typography, Flex } from 'antd'
 import { LockOutlined, MailOutlined } from '@ant-design/icons'
-import { authApi, saveToken, hasToken } from '@/lib/api/auth'
 import { LoginSchema } from '@/shared/schemas'
-import { isSuccess } from '@/lib/api/client'
+import { useAppDispatch } from '@/hooks/useAppDispatch'
+import { useAppSelector } from '@/hooks/useAppSelector'
+import { login } from '@/store/slices/authSlice'
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const dispatch = useAppDispatch()
   const [form] = Form.useForm()
-  const [messageApi, contextHolder] = message.useMessage()
+  const token = useAppSelector((s) => s.auth.token)
+  const loading = useAppSelector((s) => s.auth.loading)
+  const error = useAppSelector((s) => s.auth.error)
 
   useEffect(() => {
-    if (hasToken()) navigate('/tenants', { replace: true })
-  }, [navigate])
+    if (token) navigate('/tenants', { replace: true })
+  }, [token, navigate])
+
+  useEffect(() => {
+    if (error) form.setFields([{ name: 'password', errors: [error] }])
+  }, [error, form])
 
   const onFinish = async (values: { email: string; password: string }) => {
     const parsed = LoginSchema.safeParse(values)
@@ -26,19 +34,14 @@ export default function LoginPage() {
       return
     }
 
-    const res = await authApi.login(parsed.data.email, parsed.data.password)
-    if (isSuccess(res.code) && res.data?.token) {
-      saveToken(res.data.token)
+    const result = await dispatch(login({ email: parsed.data.email, password: parsed.data.password }))
+    if (login.fulfilled.match(result)) {
       navigate('/tenants')
-    } else {
-      messageApi.error(res.message || 'Login failed')
     }
   }
 
   return (
     <div className="min-h-screen flex">
-      {contextHolder}
-
       {/* Left brand panel — hidden on mobile */}
       <div
         className="hidden md:flex flex-col justify-center items-center w-1/2 p-12 gap-6"
@@ -85,12 +88,8 @@ export default function LoginPage() {
             </Typography.Title>
             <Typography.Text type="secondary">Enter your credentials (example credentials below)</Typography.Text>
             <Flex gap={8}>
-              <Typography.Text copyable>
-                admin@papaya.dev
-              </Typography.Text>
-              <Typography.Text copyable>
-                Admin@1234
-              </Typography.Text>
+              <Typography.Text copyable>admin@papaya.dev</Typography.Text>
+              <Typography.Text copyable>Admin@1234</Typography.Text>
             </Flex>
           </Flex>
 
@@ -117,7 +116,7 @@ export default function LoginPage() {
               />
             </Form.Item>
             <Form.Item style={{ marginBottom: 0, marginTop: 8 }}>
-              <Button type="primary" htmlType="submit" block>
+              <Button type="primary" htmlType="submit" block loading={loading}>
                 Sign In
               </Button>
             </Form.Item>

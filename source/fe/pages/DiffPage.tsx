@@ -18,7 +18,6 @@ import {
 } from 'antd'
 import { SwapOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
-import { hasToken } from '@/lib/api/auth'
 import { tenantsApi, type TenantRow } from '@/lib/api/tenants'
 import { diffApi } from '@/lib/api/diff'
 import { isSuccess } from '@/lib/api/client'
@@ -128,10 +127,6 @@ export default function DiffPage() {
   const [filter, setFilter] = useState<string[]>([])
 
   useEffect(() => {
-    if (!hasToken()) {
-      navigate('/login')
-      return
-    }
     tenantsApi.list(1, 100).then((res) => {
       if (isSuccess(res.code) && res.data) setTenants(res.data.data)
     })

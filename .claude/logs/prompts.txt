@@ -908,3 +908,49 @@ AI Response Summary:
 - Fixed ColorPicker bug: onChange second arg returns RGB when user switches picker format; changed to color.toHexString() to always get hex
 ----------
 
+----------
+Prompted at: 24/06/2026 - 00:08:29 (GMT+7)
+Prompt: Currently, I do not see claim detail logic right? So for that reason, when I updating a claim, it will not update the detail page data @source/fe/pages/tenants/TenantDetailPage.tsx , add redux here, also handle when we updata a claim, or we rollback a version
+----------
+AI Response Summary:
+- Added fetchTenantDetail async thunk, setDetail/clearDetail reducers, and detail/detailLoading state to tenantsSlice
+- Replaced local useState (tenant, fetching) in TenantDetailPage with Redux useAppSelector
+- After save: dispatch setDetail(res.data) directly (no extra API call) + updateTenantInList + fetchVersions, then switch tab
+- After rollback: dispatch fetchTenantDetail(id) to re-fetch active config (rollback changes which config is active)
+- clearDetail on unmount to prevent stale data on next visit
+----------
+
+----------
+Prompted at: 24/06/2026 - 00:10:13 (GMT+7)
+Prompt: you must also add to redux for login api
+----------
+----------
+Prompted at: 24/06/2026 - 00:10:50 (GMT+7)
+Prompt: you must also add loading to sign in button
+----------
+AI Response Summary:
+- Added login async thunk, loading, and error state to authSlice; also moved clearToken() call into clearAuth reducer
+- Updated LoginPage to use Redux dispatch(login(...)) instead of direct authApi call
+- Button now shows loading={loading} from Redux state
+- Error from rejected thunk shown on password field via useEffect watching error state
+- Removed message.useMessage() in favor of inline form field error
+----------
+
+----------
+Prompted at: 24/06/2026 - 00:15:07 (GMT+7)
+Prompt:     if (!hasToken()) {
+      navigate('/login')
+      return
+    } why don't you add to react-router for reusing, @source/fe/pages/tenants/NewTenantPage.tsx , @source/fe/pages/tenants/TenantDetailPage.tsx  @source/fe/pages/DiffPage.tsx @source/fe/pages/tenants/TenantsPage.tsx  are all shared this same logic
+----------
+AI Response Summary:
+- Created RequireAuth component using Redux token (useAppSelector) that renders <Navigate to="/login"> or <Outlet>
+- Wrapped all protected routes in App.tsx with <Route element={<RequireAuth />}>
+- Removed repeated hasToken() useEffect checks from TenantsPage, NewTenantPage, TenantDetailPage, DiffPage
+- Updated LoginPage to use Redux token instead of hasToken() for the already-logged-in redirect
+----------
+
+AI Response Summary:
+- Fixed missing token selector in LoginPage (forgot to add const token = useAppSelector)
+----------
+
