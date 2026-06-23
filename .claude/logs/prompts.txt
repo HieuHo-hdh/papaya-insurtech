@@ -787,3 +787,16 @@ AI Response Summary:
 - Clarified that migrations/seed still run manually via Railway Shell after deploy
 ----------
 
+----------
+Prompted at: 23/06/2026 - 18:51:15 (GMT+7)
+Prompt: Recheck @documents/planning/deployment.md  if it's correct, and I can start deployment
+----------
+AI Response Summary:
+- Rechecked deployment.md against actual codebase
+- Fixed seed command: replaced wrong --esm flag with correct npm run db:deploy
+- Fixed Step 2a: Dockerfile is now used, no manual build/start overrides needed
+- Fixed Step 4 file reference: app.ts (not index.ts)
+- Fixed ENV summary PORT: 3000 → 3001
+- Confirmed deployment.md is now accurate and ready to use
+----------
+

@@ -6,4 +6,4 @@ COPY . .
 RUN npx prisma generate
 RUN npm run build
 EXPOSE 3001
-CMD ["node", "dist/index.js"]
+CMD ["sh", "-c", "npm run db:deploy && node dist/index.js"]
