@@ -224,8 +224,8 @@ export function VersionHistory({ tenantId, onRollback }: VersionHistoryProps) {
       onRollback()
     } else {
       messageApi.error(res.message || 'Rollback failed')
-      setRollingBack(null)
     }
+    setRollingBack(null)
   }
 
   const columns: ColumnsType<VersionRow> = [
@@ -306,7 +306,7 @@ export function VersionHistory({ tenantId, onRollback }: VersionHistoryProps) {
         title={previewVersion ? `Config Preview — v${previewVersion.version}` : 'Config Preview'}
         open={!!previewVersion}
         onClose={() => setPreviewVersion(null)}
-        width={640}
+        size={640}
         destroyOnHidden
       >
         {previewVersion && <ConfigPreview version={previewVersion} />}

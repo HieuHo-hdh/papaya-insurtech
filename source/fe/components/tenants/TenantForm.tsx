@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import dayjs from 'dayjs'
 import {
   Form,
   Input,
@@ -452,35 +453,17 @@ export function TenantForm({ initialValues, onSubmit, loading, form: externalFor
           </Row>
         )}
 
-        <Form.Item label="Holiday Dates (skip)">
-          <Form.List name={['sla', 'holidays']}>
-            {(fields, { add, remove }) => (
-              <Flex vertical gap={8}>
-                {fields.map(({ key, name }) => (
-                  <Flex key={key} gap={8}>
-                    <Form.Item name={name} noStyle>
-                      <DatePicker
-                        format="YYYY-MM-DD"
-                        onChange={(_, dateStr) => {
-                          const list: string[] = form.getFieldValue(['sla', 'holidays'])
-                          list[name] = Array.isArray(dateStr) ? dateStr[0] : dateStr
-                          form.setFieldValue(['sla', 'holidays'], list)
-                        }}
-                      />
-                    </Form.Item>
-                    <Button danger icon={<DeleteOutlined />} onClick={() => remove(name)} />
-                  </Flex>
-                ))}
-                <Button
-                  icon={<PlusOutlined />}
-                  style={{ alignSelf: 'flex-start' }}
-                  onClick={() => add('')}
-                >
-                  Add Holiday
-                </Button>
-              </Flex>
-            )}
-          </Form.List>
+        <Form.Item
+          label="Holiday Dates (skip)"
+          name={['sla', 'holidays']}
+          getValueProps={(v: string[]) => ({
+            value: Array.isArray(v) ? v.filter(Boolean).map((d) => dayjs(d)) : [],
+          })}
+          normalize={(v: ReturnType<typeof dayjs>[]) =>
+            Array.isArray(v) ? v.map((d) => dayjs(d).format('YYYY-MM-DD')) : []
+          }
+        >
+          <DatePicker multiple format="YYYY-MM-DD" style={{ width: '100%' }} />
         </Form.Item>
 
         <Form.Item label="Escalation Contacts">
