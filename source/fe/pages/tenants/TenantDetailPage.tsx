@@ -1,7 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAppDispatch } from '@/hooks/useAppDispatch'
-import { updateTenantInList } from '@/store/slices/tenantsSlice'
+import { useAppSelector } from '@/hooks/useAppSelector'
+import {
+  updateTenantInList,
+  fetchTenantDetail,
+  setDetail,
+  clearDetail,
+} from '@/store/slices/tenantsSlice'
 import { fetchVersions } from '@/store/slices/versionsSlice'
 import { Typography, Flex, message, Button, Tabs, Tag, Skeleton } from 'antd'
 import {
@@ -13,9 +19,8 @@ import {
 import { TenantForm } from '@/components/tenants/TenantForm'
 import { VersionHistory } from '@/components/tenants/VersionHistory'
 import { ClaimTester } from '@/components/claims/ClaimTester'
-import { tenantsApi, type TenantRow } from '@/lib/api/tenants'
+import { tenantsApi } from '@/lib/api/tenants'
 import { isSuccess } from '@/lib/api/client'
-import { hasToken } from '@/lib/api/auth'
 import type { TenantConfig } from '@/shared/types'
 
 export default function TenantDetailPage() {
@@ -23,27 +28,18 @@ export default function TenantDetailPage() {
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const [messageApi, contextHolder] = message.useMessage()
-  const [tenant, setTenant] = useState<TenantRow | null>(null)
+  const tenant = useAppSelector((s) => s.tenants.detail)
+  const fetching = useAppSelector((s) => s.tenants.detailLoading)
   const [loading, setLoading] = useState(false)
-  const [fetching, setFetching] = useState(true)
   const [activeTab, setActiveTab] = useState('config')
 
   const activeConfig = tenant?.configs[0]?.config ?? null
 
-  const loadTenant = () => {
-    tenantsApi.getById(id).then((res) => {
-      if (isSuccess(res.code) && res.data) setTenant(res.data)
-      else messageApi.error('Failed to load tenant')
-      setFetching(false)
-    })
-  }
-
   useEffect(() => {
-    if (!hasToken()) {
-      navigate('/login')
-      return
+    dispatch(fetchTenantDetail(id))
+    return () => {
+      dispatch(clearDetail())
     }
-    loadTenant()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
 
@@ -51,6 +47,7 @@ export default function TenantDetailPage() {
     setLoading(true)
     const res = await tenantsApi.update(id, config)
     if (isSuccess(res.code) && res.data) {
+      dispatch(setDetail(res.data))
       dispatch(updateTenantInList(res.data))
       dispatch(fetchVersions({ tenantId: id, page: 1 }))
       messageApi.success('Config saved as new version')
@@ -59,6 +56,10 @@ export default function TenantDetailPage() {
       messageApi.error(res.message || 'Failed to save')
     }
     setLoading(false)
+  }
+
+  const handleRollback = () => {
+    dispatch(fetchTenantDetail(id))
   }
 
   return (
@@ -96,7 +97,6 @@ export default function TenantDetailPage() {
         <Tabs
           activeKey={activeTab}
           onChange={setActiveTab}
-          size="large"
           items={[
             {
               key: 'config',
@@ -128,7 +128,7 @@ export default function TenantDetailPage() {
               ),
               children: (
                 <div style={{ paddingTop: 16 }}>
-                  <VersionHistory tenantId={id} onRollback={loadTenant} />
+                  <VersionHistory tenantId={id} onRollback={handleRollback} />
                 </div>
               ),
             },

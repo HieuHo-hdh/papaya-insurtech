@@ -30,7 +30,6 @@ import {
   ReloadOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
-import { hasToken } from '@/lib/api/auth'
 import { tenantsApi, type TenantRow } from '@/lib/api/tenants'
 import { isSuccess } from '@/lib/api/client'
 import type { ClaimType } from '@/shared/types'
@@ -65,10 +64,6 @@ export default function TenantsPage() {
   }
 
   useEffect(() => {
-    if (!hasToken()) {
-      navigate('/login')
-      return
-    }
     // eslint-disable-next-line react-hooks/set-state-in-effect
     loadTenants(page)
     // eslint-disable-next-line react-hooks/exhaustive-deps
