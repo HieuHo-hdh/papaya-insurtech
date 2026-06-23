@@ -742,3 +742,9 @@ AI Response Summary:
 - Created documents/planning/deployment.md with step-by-step plan: Railway Postgres → Railway BE → Vercel FE → CORS config → smoke test; includes env var tables and cost estimate (~$10/month)
 ----------
 
+AI Response Summary:
+- Added explicit @jest/globals imports (describe, it, expect, beforeAll, afterAll) to all 5 API test files in source/be/src/__tests__/api/
+- Left auth.service.test.ts untouched — it uses jest.mock() hoisting which requires implicit globals
+- Full npm test suite: 109 tests across 7 suites, all passing
+----------
+

@@ -128,12 +128,13 @@ export const TenantConfigSchema = z
   .object({
     branding: BrandingSchema,
     // Partial record: not all 5 enum keys required, but at least 1 must be present and enabled
+    // Zod 4: z.record(enum, schema) creates an exhaustive record — use .optional() values for partial
     claimTypes: z
-      .record(ClaimTypeEnum, ClaimTypeConfigSchema)
-      .refine((ct) => Object.keys(ct).length > 0, {
+      .record(ClaimTypeEnum, ClaimTypeConfigSchema.optional())
+      .refine((ct) => Object.values(ct).filter(Boolean).length > 0, {
         message: 'At least one claim type must be configured',
       })
-      .refine((ct) => Object.values(ct).some((v) => v.enabled), {
+      .refine((ct) => Object.values(ct).filter(Boolean).some((v) => v!.enabled), {
         message: 'At least one claim type must be enabled',
       }),
     approvalRules: ApprovalRulesSchema,
@@ -143,8 +144,12 @@ export const TenantConfigSchema = z
     customFields: z.array(CustomFieldSchema).optional().default([]),
   })
   .superRefine((config, ctx) => {
-    // perClaimType keys must be a subset of configured claimType keys
-    const knownKeys = new Set(Object.keys(config.claimTypes))
+    // perClaimType keys must be a subset of DEFINED claim type keys
+    const knownKeys = new Set(
+      Object.entries(config.claimTypes)
+        .filter(([, v]) => v !== undefined)
+        .map(([k]) => k),
+    )
     for (const key of Object.keys(config.sla.perClaimType)) {
       if (!knownKeys.has(key)) {
         ctx.addIssue({
