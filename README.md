@@ -6,6 +6,7 @@ A **Multi-Tenant Insurance Configuration Platform** — a coding challenge that 
 
 - **GitHub:** https://github.com/HieuHo-hdh/papaya-insurtech
 - **Live Demo:** https://papaya-insurtech.vercel.app
+- **Quick Demo Record:** https://drive.google.com/file/d/1JR2wUf8gPgnwUt6rsy8swSF28dR5nk1s/view?usp=sharing
 
 ---
 
@@ -81,6 +82,6 @@ Planning and module-level documentation.
 
 ## AI PROMPT MODULES
 
-Each feature module (M1–M12) was built using a structured prompt flow: BA → SA → BE/FE → QA → TL review. Module specs live alongside the commands.
+Each feature module (M1–M12) was built using a structured prompt flow: BA → SA → BE/FE → QA. Module specs live alongside the commands.
 
 **Location:** [`documents/modules/`](./documents/modules/)
